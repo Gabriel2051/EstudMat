@@ -1,0 +1,54 @@
+// app/(tabs)/index.ts
+import DashboardScreen from "@/src/screens/DashboardScreen";
+import { createStackNavigator } from "@react-navigation/stack";
+import React from "react";
+
+import Agendamento from "../../src/screens/Agendamento";
+import HomeScreen from "../../src/screens/HomeScreen";
+import ListaUsuarios from "../../src/screens/ListaUsuarios";
+import LoginScreen from "../../src/screens/LoginScreen";
+import Perfil from "../../src/screens/Perfil";
+import Receipts from "../../src/screens/Receipts";
+import RegisterScreen from "../../src/screens/RegisterScreen";
+import RewardsList from "../../src/screens/RewardsList";
+import ShopCart from "../../src/screens/ShopCart";
+
+// IMPORTAÇÃO CORRETA DO STORE PROVIDER
+import { StoreProvider } from "../../src/screens/Store";
+
+export type RootStackParamList = {
+  Home: undefined;
+  Login: undefined;
+  Register: undefined;
+  Dashboard: undefined;
+  Perfil: { userId?: string } | undefined;
+  ListaUsuarios: undefined;
+  Agendamento: undefined;
+  RewardsList: undefined;
+  ShopCart: undefined;
+  Receipts: undefined;
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
+
+export default function RootStack() {
+  return (
+    <StoreProvider>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="Perfil" component={Perfil} />
+        <Stack.Screen name="ListaUsuarios" component={ListaUsuarios} />
+        <Stack.Screen name="Agendamento" component={Agendamento} />
+        <Stack.Screen name="RewardsList" component={RewardsList} />
+        <Stack.Screen name="ShopCart" component={ShopCart} />
+        <Stack.Screen name="Receipts" component={Receipts} />
+      </Stack.Navigator>
+    </StoreProvider>
+  );
+}
