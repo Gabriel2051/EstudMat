@@ -1,8 +1,9 @@
 import { useNavigation } from "@react-navigation/native"
 import type { StackNavigationProp } from "@react-navigation/stack"
 import { LinearGradient } from "expo-linear-gradient"
-import { Dimensions, Image, Platform, Pressable, StyleSheet, Text, View } from "react-native"
+import { Image, Platform, Pressable, StyleSheet, Text, View, Dimensions } from "react-native"
 import type { RootStackParamList } from "../../app/(tabs)/index"
+import { useResponsive } from "../hooks/useResponsive"
 
 const { width } = Dimensions.get("window")
 
@@ -10,10 +11,11 @@ type NavigationProps = StackNavigationProp<RootStackParamList>
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProps>()
+  const { width: responsiveWidth } = useResponsive()
 
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
+      <View style={[styles.card, { width: Math.min(responsiveWidth - 40, 420) }]}>
         <Image source={require("../../assets/images/Midia.png")} style={styles.logo} resizeMode="contain" />
 
         <Text style={styles.title}>
@@ -51,86 +53,81 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: "#0f0f14",
     justifyContent: "center",
     alignItems: "center",
-    padding: 24,
+    padding: 20,
   },
   card: {
-    width: width * 0.94,
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-    borderRadius: 18,
-    backgroundColor: "#1a1a1a",
+    maxWidth: "100%",
+    paddingVertical: 36,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    backgroundColor: "#1a1a1f",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.2)",
-    elevation: 12,
-    shadowColor: "#6366f1",
-    shadowOffset: { width: 0, height: 10 },
+    borderColor: "rgba(255,255,255,0.08)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
-    shadowRadius: 20,
+    shadowRadius: 16,
+    elevation: 8,
   },
   logo: {
-    width: width * 0.15,
-    height: width * 0.15,
-    marginBottom: 14,
+    width: 80,
+    height: 80,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "800",
-    color: "#fff",
+    color: "#ffffff",
     textAlign: "center",
-    marginBottom: 6,
+    marginBottom: 8,
     letterSpacing: 0.3,
     fontFamily: Platform.OS === "android" ? "sans-serif-medium" : "System",
   },
   brand: {
-    color: "#8b5cf6",
+    color: "#6366f1",
   },
   divider: {
-    height: 4,
-    width: 60,
+    height: 3,
+    width: 50,
     borderRadius: 6,
     marginVertical: 12,
-    backgroundColor: "rgba(139,92,246,0.3)",
+    backgroundColor: "rgba(99,102,241,0.4)",
   },
   description: {
     fontSize: 15,
-    color: "rgba(255,255,255,0.8)",
+    color: "rgba(255,255,255,0.7)",
     textAlign: "center",
     lineHeight: 22,
-    marginBottom: 22,
-    paddingHorizontal: 6,
+    marginBottom: 24,
+    paddingHorizontal: 8,
   },
   highlight: {
-    color: "#a78bfa",
+    color: "#8b5cf6",
     fontWeight: "600",
   },
   pressable: {
     width: "100%",
     alignItems: "center",
-    borderRadius: 14,
+    borderRadius: 12,
     overflow: "hidden",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   pressablePressed: {
-    opacity: 0.9,
+    opacity: 0.85,
   },
   button: {
-    width: 220,
-    borderRadius: 14,
+    width: "100%",
+    borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 8,
-    shadowColor: "#8b5cf6",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 14,
   },
   buttonText: {
-    color: "#fff",
+    color: "#ffffff",
     fontSize: 16,
     fontWeight: "700",
     letterSpacing: 0.8,
@@ -141,5 +138,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 12,
     color: "rgba(255,255,255,0.5)",
+    textAlign: "center",
   },
 })

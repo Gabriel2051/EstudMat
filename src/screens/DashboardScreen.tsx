@@ -1,26 +1,30 @@
 "use client"
 
+import { useState } from "react"
+
 import { useNavigation } from "@react-navigation/native"
 import type { StackNavigationProp } from "@react-navigation/stack"
 import { LinearGradient } from "expo-linear-gradient"
-import { Dimensions, Image, Pressable, StyleSheet, Text, View } from "react-native"
-import { useEffect, useState } from "react"
+import { Image, Pressable, StyleSheet, Text, View } from "react-native"
+import { useEffect } from "react"
 import type { RootStackParamList } from "../../app/(tabs)/index"
 import { auth } from "./../services/connectionFirebase"
 import { showAlert } from "../utils/platformAlert"
-
-const { width } = Dimensions.get("window")
+import { useStore } from "./Store"
+import { useResponsive } from "../hooks/useResponsive"
 
 type NavigationProps = StackNavigationProp<RootStackParamList>
 
 export default function DashboardScreen() {
   const navigation = useNavigation<NavigationProps>()
   const [userEmail, setUserEmail] = useState<string>("")
+  const { xp: userXP, reloadXP } = useStore()
+  const [loading, setLoading] = useState(true)
+  const { width } = useResponsive()
 
   const level = 4
-  const currentXP = 320
   const xpToNext = 500
-  const progress = Math.min(1, currentXP / xpToNext)
+  const progress = Math.min(1, userXP / xpToNext)
 
   useEffect(() => {
     const user = auth.currentUser
@@ -31,7 +35,20 @@ export default function DashboardScreen() {
       return
     }
     setUserEmail(user.email || "Usuário")
+
+    loadUserData()
   }, [])
+
+  const loadUserData = async () => {
+    setLoading(true)
+    try {
+      await reloadXP()
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleLogout = async () => {
     try {
@@ -69,7 +86,7 @@ export default function DashboardScreen() {
 
               <View style={styles.xpProgressContainer}>
                 <View style={styles.xpTextRow}>
-                  <Text style={styles.xpCurrent}>{currentXP} XP</Text>
+                  <Text style={styles.xpCurrent}>{userXP} XP</Text>
                   <Text style={styles.xpTarget}>/ {xpToNext}</Text>
                 </View>
                 <View style={styles.progressBar}>
@@ -107,7 +124,12 @@ export default function DashboardScreen() {
       <View style={styles.mainGrid}>
         <Pressable
           android_ripple={{ color: "rgba(99,102,241,0.05)" }}
-          style={({ pressed }) => [styles.gridCard, styles.gridCardLarge, pressed && styles.cardPressed]}
+          style={({ pressed }) => [
+            styles.gridCard,
+            styles.gridCardLarge,
+            { width: width - 32 },
+            pressed && styles.cardPressed,
+          ]}
           onPress={() => handleComingSoon("Desafios")}
         >
           <LinearGradient
@@ -124,7 +146,7 @@ export default function DashboardScreen() {
 
         <Pressable
           android_ripple={{ color: "rgba(99,102,241,0.05)" }}
-          style={({ pressed }) => [styles.gridCard, pressed && styles.cardPressed]}
+          style={({ pressed }) => [styles.gridCard, { width: (width - 42) / 2 }, pressed && styles.cardPressed]}
           onPress={() => handleComingSoon("Treinar")}
         >
           <LinearGradient
@@ -141,7 +163,7 @@ export default function DashboardScreen() {
 
         <Pressable
           android_ripple={{ color: "rgba(99,102,241,0.05)" }}
-          style={({ pressed }) => [styles.gridCard, pressed && styles.cardPressed]}
+          style={({ pressed }) => [styles.gridCard, { width: (width - 42) / 2 }, pressed && styles.cardPressed]}
           onPress={() => navigation.navigate("RewardsList")}
         >
           <LinearGradient
@@ -158,7 +180,7 @@ export default function DashboardScreen() {
 
         <Pressable
           android_ripple={{ color: "rgba(99,102,241,0.05)" }}
-          style={({ pressed }) => [styles.gridCard, pressed && styles.cardPressed]}
+          style={({ pressed }) => [styles.gridCard, { width: (width - 42) / 2 }, pressed && styles.cardPressed]}
           onPress={() => navigation.navigate("ShopCart")}
         >
           <LinearGradient
@@ -175,7 +197,7 @@ export default function DashboardScreen() {
 
         <Pressable
           android_ripple={{ color: "rgba(99,102,241,0.05)" }}
-          style={({ pressed }) => [styles.gridCard, pressed && styles.cardPressed]}
+          style={({ pressed }) => [styles.gridCard, { width: (width - 42) / 2 }, pressed && styles.cardPressed]}
           onPress={() => navigation.navigate("Agendamento")}
         >
           <LinearGradient
@@ -192,7 +214,7 @@ export default function DashboardScreen() {
 
         <Pressable
           android_ripple={{ color: "rgba(99,102,241,0.05)" }}
-          style={({ pressed }) => [styles.gridCard, pressed && styles.cardPressed]}
+          style={({ pressed }) => [styles.gridCard, { width: (width - 42) / 2 }, pressed && styles.cardPressed]}
           onPress={() => navigation.navigate("Receipts")}
         >
           <LinearGradient
@@ -249,54 +271,54 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0a0a0f",
-    padding: 20,
+    backgroundColor: "#0f0f14",
+    padding: 16,
   },
   headerCard: {
-    backgroundColor: "#141419",
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 24,
+    backgroundColor: "#1a1a1f",
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.1)",
+    borderColor: "rgba(255,255,255,0.08)",
   },
   headerContent: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 14,
   },
   logo: {
-    width: 70,
-    height: 70,
-    marginRight: 16,
+    width: 60,
+    height: 60,
+    marginRight: 14,
   },
   userInfo: {
     flex: 1,
   },
   welcome: {
-    color: "#9ca3af",
-    fontSize: 14,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 13,
     marginBottom: 4,
   },
   userName: {
     color: "#ffffff",
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "800",
-    marginBottom: 12,
+    marginBottom: 10,
   },
   levelContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
   },
   levelBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 8,
   },
   levelText: {
     color: "#ffffff",
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
   },
   xpProgressContainer: {
@@ -305,21 +327,21 @@ const styles = StyleSheet.create({
   xpTextRow: {
     flexDirection: "row",
     alignItems: "baseline",
-    marginBottom: 6,
+    marginBottom: 5,
   },
   xpCurrent: {
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
   },
   xpTarget: {
-    color: "#6b7280",
-    fontSize: 12,
-    marginLeft: 4,
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 11,
+    marginLeft: 3,
   },
   progressBar: {
-    height: 8,
-    backgroundColor: "rgba(99,102,241,0.1)",
+    height: 7,
+    backgroundColor: "rgba(99,102,241,0.15)",
     borderRadius: 4,
     overflow: "hidden",
   },
@@ -329,134 +351,132 @@ const styles = StyleSheet.create({
   },
   quickActions: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
   actionButton: {
     flex: 1,
-    backgroundColor: "rgba(99,102,241,0.15)",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    backgroundColor: "rgba(99,102,241,0.12)",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.3)",
+    borderColor: "rgba(99,102,241,0.25)",
   },
   actionButtonText: {
-    color: "#c7d2fe",
-    fontSize: 14,
+    color: "#a5b4fc",
+    fontSize: 13,
     fontWeight: "700",
   },
   actionButtonOutline: {
     flex: 1,
     backgroundColor: "transparent",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: "rgba(255,255,255,0.15)",
   },
   actionButtonOutlineText: {
-    color: "#e5e7eb",
-    fontSize: 14,
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 13,
     fontWeight: "700",
   },
   mainGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
-    marginBottom: 24,
+    gap: 10,
+    marginBottom: 20,
   },
   gridCard: {
-    width: (width - 52) / 2,
-    height: 140,
-    borderRadius: 16,
+    height: 120,
+    borderRadius: 14,
     overflow: "hidden",
   },
   gridCardLarge: {
-    width: width - 40,
-    height: 160,
+    height: 140,
   },
   gradientCard: {
     flex: 1,
-    padding: 16,
+    padding: 14,
     justifyContent: "space-between",
   },
   cardIcon: {
-    fontSize: 32,
+    fontSize: 28,
   },
   gridCardTitle: {
     color: "#ffffff",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "800",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   gridCardSubtitle: {
     color: "rgba(255,255,255,0.7)",
-    fontSize: 13,
+    fontSize: 12,
   },
   achievementsCard: {
-    backgroundColor: "#141419",
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 24,
+    backgroundColor: "#1a1a1f",
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.1)",
+    borderColor: "rgba(255,255,255,0.08)",
   },
   achievementsHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 14,
   },
   achievementsTitle: {
     color: "#ffffff",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "800",
   },
   achievementsBadge: {
-    backgroundColor: "rgba(99,102,241,0.2)",
-    color: "#c7d2fe",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontSize: 12,
+    backgroundColor: "rgba(99,102,241,0.15)",
+    color: "#a5b4fc",
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+    fontSize: 11,
     fontWeight: "700",
   },
   achievementsGrid: {
     flexDirection: "row",
-    gap: 16,
+    gap: 14,
   },
   achievementItem: {
     alignItems: "center",
   },
   achievementBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 50,
+    height: 50,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   achievementEmoji: {
-    fontSize: 28,
+    fontSize: 24,
   },
   achievementLabel: {
-    color: "#9ca3af",
+    color: "rgba(255,255,255,0.6)",
     fontSize: 11,
     fontWeight: "600",
   },
   logoutButton: {
-    backgroundColor: "rgba(239,68,68,0.1)",
-    paddingVertical: 16,
-    borderRadius: 12,
+    backgroundColor: "rgba(239,68,68,0.08)",
+    paddingVertical: 14,
+    borderRadius: 10,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(239,68,68,0.3)",
+    borderColor: "rgba(239,68,68,0.25)",
   },
   logoutText: {
-    color: "#fca5a5",
-    fontSize: 16,
+    color: "#ef4444",
+    fontSize: 15,
     fontWeight: "700",
   },
   buttonPressed: {

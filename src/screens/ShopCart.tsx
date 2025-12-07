@@ -1,5 +1,8 @@
+"use client"
+
 import { useNavigation } from "@react-navigation/native"
 import { LinearGradient } from "expo-linear-gradient"
+import { useState } from "react"
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native"
 import { useStore } from "../screens/Store"
 import { showAlert } from "../utils/platformAlert"
@@ -9,9 +12,16 @@ export default function ShopCart() {
 
   const { cart, incrementQty, decrementQty, removeFromCart, purchaseCart, xp, inventory } = useStore()
 
+  const [isPurchasing, setIsPurchasing] = useState(false)
+
   const total = cart.reduce((s, it) => s + it.precoXP * it.quantity, 0)
 
   const handlePurchase = async () => {
+    console.log("[v0] handlePurchase chamado")
+    console.log("[v0] Carrinho length:", cart.length)
+    console.log("[v0] Total XP necessário:", total)
+    console.log("[v0] XP disponível:", xp)
+
     if (cart.length === 0) {
       showAlert("Carrinho vazio", "Adicione recompensas antes de comprar.")
       return
@@ -22,11 +32,23 @@ export default function ShopCart() {
       return
     }
 
-    const result = await purchaseCart()
-    showAlert(result.success ? "✓ Sucesso" : "Erro", result.message)
+    setIsPurchasing(true)
 
-    if (result.success) {
-      navigation.navigate("Receipts" as never)
+    try {
+      console.log("[v0] Chamando purchaseCart...")
+      const result = await purchaseCart()
+      console.log("[v0] Resultado:", result)
+
+      showAlert(result.success ? "✓ Sucesso" : "Erro", result.message)
+
+      if (result.success) {
+        navigation.navigate("Receipts" as never)
+      }
+    } catch (error: any) {
+      console.error("[v0] Erro no handlePurchase:", error)
+      showAlert("Erro", `Erro inesperado: ${error?.message || "Desconhecido"}`)
+    } finally {
+      setIsPurchasing(false)
     }
   }
 
@@ -131,26 +153,23 @@ export default function ShopCart() {
             </View>
           </View>
 
-     <Pressable
-  style={[
-    styles.purchaseButton,
-    total > xp && { opacity: 0.6 }
-  ]}
-  android_ripple={{ color: "rgba(99,102,241,0.3)" }}
-  onPress={total > xp ? null : handlePurchase}
->
-  <LinearGradient
-    colors={total > xp ? ["#4b5563", "#6b7280"] : ["#6366f1", "#8b5cf6"]}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 0 }}
-    style={styles.purchaseButtonGradient}
-  >
-    <Text style={styles.purchaseButtonText}>
-      {total > xp ? "XP insuficiente" : "Finalizar Compra"}
-    </Text>
-  </LinearGradient>
-</Pressable>
-
+          <Pressable
+            style={[styles.purchaseButton, (total > xp || isPurchasing) && { opacity: 0.6 }]}
+            android_ripple={{ color: "rgba(99,102,241,0.3)" }}
+            onPress={handlePurchase}
+            disabled={isPurchasing}
+          >
+            <LinearGradient
+              colors={total > xp ? ["#4b5563", "#6b7280"] : ["#6366f1", "#8b5cf6"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.purchaseButtonGradient}
+            >
+              <Text style={styles.purchaseButtonText}>
+                {isPurchasing ? "Processando..." : total > xp ? "XP insuficiente" : "Finalizar Compra"}
+              </Text>
+            </LinearGradient>
+          </Pressable>
         </View>
       )}
 
@@ -173,71 +192,71 @@ export default function ShopCart() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0a0a0f",
-    padding: 20,
+    backgroundColor: "#0f0f14",
+    padding: 16,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 18,
   },
   title: {
     color: "#ffffff",
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "800",
   },
   subtitle: {
-    color: "#9ca3af",
-    fontSize: 14,
-    marginTop: 4,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 13,
+    marginTop: 3,
   },
   xpBadge: {
     flexDirection: "row",
     alignItems: "baseline",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 5,
   },
   xpText: {
     color: "#ffffff",
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "800",
   },
   xpLabel: {
     color: "rgba(255,255,255,0.8)",
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "600",
   },
   receiptsButton: {
-    backgroundColor: "rgba(99,102,241,0.15)",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 20,
+    backgroundColor: "rgba(99,102,241,0.12)",
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    marginBottom: 18,
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.3)",
+    borderColor: "rgba(99,102,241,0.25)",
   },
   receiptsButtonText: {
-    color: "#c7d2fe",
+    color: "#a5b4fc",
     fontWeight: "700",
-    fontSize: 15,
+    fontSize: 14,
     textAlign: "center",
   },
   cartItem: {
-    backgroundColor: "#141419",
-    borderRadius: 16,
-    marginBottom: 16,
+    backgroundColor: "#1a1a1f",
+    borderRadius: 14,
+    marginBottom: 14,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.1)",
+    borderColor: "rgba(255,255,255,0.08)",
     flexDirection: "row",
   },
   imageContainer: {
-    width: 100,
-    height: 120,
-    backgroundColor: "#1e1b4b",
+    width: 90,
+    height: 110,
+    backgroundColor: "#16161a",
   },
   itemImage: {
     width: "100%",
@@ -250,7 +269,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   placeholderIcon: {
-    fontSize: 32,
+    fontSize: 28,
   },
   itemContent: {
     flex: 1,
@@ -258,28 +277,28 @@ const styles = StyleSheet.create({
   },
   itemName: {
     color: "#ffffff",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "800",
-    marginBottom: 8,
+    marginBottom: 7,
   },
   priceRow: {
     flexDirection: "row",
     alignItems: "baseline",
-    gap: 8,
-    marginBottom: 12,
+    gap: 6,
+    marginBottom: 10,
   },
   itemPrice: {
-    color: "#c7d2fe",
-    fontSize: 14,
+    color: "#a5b4fc",
+    fontSize: 13,
     fontWeight: "600",
   },
   itemMultiplier: {
-    color: "#6b7280",
-    fontSize: 13,
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 12,
   },
   itemTotal: {
     color: "#ffffff",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
   },
   controls: {
@@ -290,139 +309,139 @@ const styles = StyleSheet.create({
   quantityControls: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    backgroundColor: "rgba(99,102,241,0.1)",
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 10,
-  },
-  qtyButton: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(99,102,241,0.2)",
+    gap: 10,
+    backgroundColor: "rgba(99,102,241,0.08)",
+    paddingHorizontal: 7,
+    paddingVertical: 5,
     borderRadius: 8,
   },
+  qtyButton: {
+    width: 28,
+    height: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(99,102,241,0.15)",
+    borderRadius: 7,
+  },
   qtyButtonText: {
-    color: "#c7d2fe",
-    fontSize: 18,
+    color: "#a5b4fc",
+    fontSize: 16,
     fontWeight: "700",
   },
   quantity: {
     color: "#ffffff",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
-    minWidth: 24,
+    minWidth: 20,
     textAlign: "center",
   },
   removeButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 7,
   },
   removeButtonText: {
-    color: "#fca5a5",
-    fontSize: 13,
+    color: "#ef4444",
+    fontSize: 12,
     fontWeight: "600",
   },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 80,
+    paddingVertical: 60,
   },
   emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
+    fontSize: 54,
+    marginBottom: 14,
   },
   emptyText: {
     color: "#ffffff",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   emptySubtext: {
-    color: "#9ca3af",
-    fontSize: 14,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 13,
   },
   checkoutSection: {
-    backgroundColor: "#141419",
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: "#1a1a1f",
+    borderRadius: 14,
+    padding: 18,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.1)",
+    borderColor: "rgba(255,255,255,0.08)",
   },
   totalContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "baseline",
-    marginBottom: 16,
+    marginBottom: 14,
   },
   totalLabel: {
-    color: "#9ca3af",
-    fontSize: 16,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 15,
     fontWeight: "600",
   },
   totalPriceContainer: {
     flexDirection: "row",
     alignItems: "baseline",
-    gap: 6,
+    gap: 5,
   },
   totalPrice: {
     color: "#ffffff",
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "800",
   },
   totalXP: {
-    color: "#9ca3af",
-    fontSize: 16,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 14,
     fontWeight: "600",
   },
   purchaseButton: {
-    borderRadius: 12,
+    borderRadius: 10,
     overflow: "hidden",
   },
   purchaseButtonGradient: {
-    paddingVertical: 16,
+    paddingVertical: 14,
     alignItems: "center",
   },
   purchaseButtonText: {
     color: "#ffffff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
   },
   inventorySection: {
-    marginTop: 20,
-    backgroundColor: "#141419",
-    borderRadius: 16,
-    padding: 16,
+    marginTop: 18,
+    backgroundColor: "#1a1a1f",
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.1)",
+    borderColor: "rgba(255,255,255,0.08)",
   },
   inventoryTitle: {
     color: "#ffffff",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "800",
-    marginBottom: 12,
+    marginBottom: 10,
   },
   inventoryGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: 7,
   },
   inventoryItem: {
-    backgroundColor: "rgba(99,102,241,0.15)",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: "rgba(99,102,241,0.12)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 7,
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.3)",
+    borderColor: "rgba(99,102,241,0.25)",
   },
   inventoryItemText: {
-    color: "#c7d2fe",
-    fontSize: 12,
+    color: "#a5b4fc",
+    fontSize: 11,
     fontWeight: "700",
   },
 })

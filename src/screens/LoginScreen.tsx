@@ -6,7 +6,6 @@ import { LinearGradient } from "expo-linear-gradient"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { useRef, useState } from "react"
 import {
-  Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -19,13 +18,13 @@ import {
 } from "react-native"
 import type { RootStackParamList } from "../../app/(tabs)/index"
 import { auth } from "../services/connectionFirebase"
-
-const { width } = Dimensions.get("window")
+import { useResponsive } from "../hooks/useResponsive"
 
 type NavigationProps = StackNavigationProp<RootStackParamList>
 
 export default function LoginScreen() {
   const navigation = useNavigation<NavigationProps>()
+  const { width } = useResponsive()
 
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
@@ -90,7 +89,7 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <View style={styles.card}>
+        <View style={[styles.card, { width: Math.min(width - 40, 420) }]}>
           {message ? <Text style={[styles.message, isError ? styles.error : styles.success]}>{message}</Text> : null}
 
           <Image source={require("../../assets/images/Midia.png")} style={styles.logo} resizeMode="contain" />
@@ -179,97 +178,97 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0a0a0f",
+    backgroundColor: "#0f0f14",
   },
   scroll: {
     flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 24,
+    padding: 20,
   },
   card: {
-    width: width * 0.94,
-    paddingVertical: 40,
+    maxWidth: "100%",
+    paddingVertical: 32,
     paddingHorizontal: 24,
     borderRadius: 20,
-    backgroundColor: "#141419",
+    backgroundColor: "#1a1a1f",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.2)",
+    borderColor: "rgba(255,255,255,0.08)",
   },
   logo: {
-    width: width * 0.25,
-    height: width * 0.25,
+    width: 90,
+    height: 90,
     marginBottom: 16,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "800",
     color: "#ffffff",
     textAlign: "center",
     marginBottom: 8,
   },
   brand: {
-    color: "#8b5cf6",
+    color: "#6366f1",
   },
   divider: {
-    height: 4,
-    width: 80,
+    height: 3,
+    width: 60,
     borderRadius: 4,
     marginVertical: 12,
-    backgroundColor: "rgba(99,102,241,0.3)",
+    backgroundColor: "rgba(99,102,241,0.4)",
   },
   subtitle: {
-    fontSize: 15,
-    color: "#9ca3af",
+    fontSize: 14,
+    color: "rgba(255,255,255,0.6)",
     textAlign: "center",
     marginBottom: 24,
   },
   highlight: {
-    color: "#c7d2fe",
-    fontWeight: "700",
+    color: "#8b5cf6",
+    fontWeight: "600",
   },
   input: {
     width: "100%",
-    backgroundColor: "rgba(99,102,241,0.05)",
+    backgroundColor: "rgba(255,255,255,0.04)",
     borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
+    paddingVertical: 13,
+    fontSize: 15,
     color: "#ffffff",
-    marginBottom: 16,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.2)",
+    borderColor: "rgba(255,255,255,0.1)",
   },
   forgotPassword: {
     alignSelf: "flex-end",
-    marginBottom: 20,
+    marginBottom: 18,
     paddingVertical: 6,
     paddingHorizontal: 8,
     borderRadius: 8,
   },
   forgotText: {
-    color: "#c7d2fe",
+    color: "rgba(255,255,255,0.6)",
     fontSize: 13,
     fontWeight: "600",
   },
   pressable: {
     width: "100%",
     alignItems: "center",
-    borderRadius: 14,
+    borderRadius: 12,
     overflow: "hidden",
-    marginBottom: 16,
+    marginBottom: 14,
   },
   pressablePressed: {
-    opacity: 0.9,
+    opacity: 0.85,
   },
   pressableDisabled: {
     opacity: 0.6,
   },
   button: {
     width: "100%",
-    borderRadius: 14,
-    paddingVertical: 16,
+    borderRadius: 12,
+    paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -286,12 +285,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   registerText: {
-    color: "#9ca3af",
+    color: "rgba(255,255,255,0.6)",
     fontSize: 14,
     textAlign: "center",
   },
   registerTextHighlight: {
-    color: "#8b5cf6",
+    color: "#6366f1",
     fontWeight: "700",
   },
   message: {
@@ -301,9 +300,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   error: {
-    color: "#fca5a5",
+    color: "#ef4444",
   },
   success: {
-    color: "#86efac",
+    color: "#10b981",
   },
 })

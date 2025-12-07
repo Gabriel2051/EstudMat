@@ -3,18 +3,18 @@
 // src/screens/RewardsList.tsx
 import { useNavigation } from "@react-navigation/native"
 import { useEffect, useState } from "react"
-import { ActivityIndicator, Dimensions, FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native"
+import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import { type Reward, useStore } from "../screens/Store"
 import { showAlert } from "../utils/platformAlert"
-
-const { width } = Dimensions.get("window")
+import useResponsive from "../hooks/useResponsive"
 
 export default function RewardsList() {
   const [rewards, setRewards] = useState<Reward[]>([])
   const [loading, setLoading] = useState(false)
   const navigation = useNavigation()
   const { addToCart, xp } = useStore()
+  const { width } = useResponsive()
 
   useEffect(() => {
     fetchRewards()
@@ -33,11 +33,8 @@ export default function RewardsList() {
       })
 
       const json = await res.json()
-      console.log("JSON do bin:", JSON.stringify(json, null, 2))
 
-      // Confere se existe recompensas e seta, senão vazio
       setRewards(json.record?.recompensas || [])
-      console.log("Recompensas carregadas:", json.record?.recompensas)
     } catch (e) {
       console.warn("Erro ao buscar recompensas", e)
       showAlert("Erro", "Não foi possível carregar recompensas. Verifique a URL.")
@@ -145,8 +142,8 @@ export default function RewardsList() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0a0a0f",
-    padding: 20,
+    backgroundColor: "#0f0f14",
+    padding: 16,
   },
   center: {
     justifyContent: "center",
@@ -156,48 +153,48 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 20,
   },
   title: {
     color: "#ffffff",
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "800",
   },
   subtitle: {
-    color: "#9ca3af",
-    fontSize: 14,
-    marginTop: 4,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 13,
+    marginTop: 3,
   },
   xpBadge: {
     flexDirection: "row",
     alignItems: "baseline",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 5,
   },
   xpText: {
     color: "#ffffff",
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "800",
   },
   xpLabel: {
     color: "rgba(255,255,255,0.8)",
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "600",
   },
   rewardCard: {
-    backgroundColor: "#141419",
-    borderRadius: 16,
-    marginBottom: 16,
+    backgroundColor: "#1a1a1f",
+    borderRadius: 14,
+    marginBottom: 14,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(99,102,241,0.1)",
+    borderColor: "rgba(255,255,255,0.08)",
   },
   imageContainer: {
     width: "100%",
-    height: 180,
-    backgroundColor: "#1e1b4b",
+    height: 150,
+    backgroundColor: "#16161a",
   },
   rewardImage: {
     width: "100%",
@@ -210,22 +207,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   placeholderIcon: {
-    fontSize: 48,
+    fontSize: 40,
   },
   rewardContent: {
-    padding: 16,
+    padding: 14,
   },
   rewardName: {
     color: "#ffffff",
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   rewardDesc: {
-    color: "#9ca3af",
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 16,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 14,
   },
   rewardFooter: {
     flexDirection: "row",
@@ -235,36 +232,36 @@ const styles = StyleSheet.create({
   priceContainer: {
     flexDirection: "row",
     alignItems: "baseline",
-    gap: 6,
+    gap: 5,
   },
   priceValue: {
     color: "#ffffff",
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "800",
   },
   priceLabel: {
-    color: "#9ca3af",
-    fontSize: 14,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 13,
     fontWeight: "600",
   },
   addButton: {
-    borderRadius: 12,
+    borderRadius: 10,
     overflow: "hidden",
   },
   addButtonGradient: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
   addButtonText: {
     color: "#ffffff",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
   },
   cartButton: {
     position: "absolute",
-    right: 20,
-    bottom: 20,
-    borderRadius: 16,
+    right: 16,
+    bottom: 16,
+    borderRadius: 14,
     overflow: "hidden",
     elevation: 8,
     shadowColor: "#6366f1",
@@ -275,19 +272,19 @@ const styles = StyleSheet.create({
   cartButtonGradient: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    gap: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    gap: 7,
   },
   cartButtonIcon: {
-    fontSize: 20,
+    fontSize: 18,
   },
   cartButtonText: {
     color: "#ffffff",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
   },
   buttonPressed: {
-    opacity: 0.8,
+    opacity: 0.85,
   },
 })
