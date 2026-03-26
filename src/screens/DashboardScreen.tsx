@@ -144,6 +144,7 @@ export default function DashboardScreen() {
           </LinearGradient>
         </Pressable>
 
+        {/* LOJA */}
         <Pressable
           style={({ pressed }) => [styles.gridCard, { width: (width - 42) / 2 }, pressed && styles.cardPressed]}
           onPress={() => navigation.navigate("RewardsList")}
@@ -154,6 +155,7 @@ export default function DashboardScreen() {
           </LinearGradient>
         </Pressable>
 
+        {/* CARRINHO */}
         <Pressable
           style={({ pressed }) => [styles.gridCard, { width: (width - 42) / 2 }, pressed && styles.cardPressed]}
           onPress={() => navigation.navigate("ShopCart")}
@@ -161,6 +163,38 @@ export default function DashboardScreen() {
           <LinearGradient colors={["#581c87", "#6b21a8"]} style={styles.gradientCard}>
             <Text style={styles.cardIcon}>🛒</Text>
             <Text style={styles.gridCardTitle}>Carrinho</Text>
+          </LinearGradient>
+        </Pressable>
+
+        {/* AGENDAMENTO */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.gridCard,
+            { width: (width - 42) / 2 },
+            pressed && styles.cardPressed,
+          ]}
+          onPress={() => navigation.navigate("Agendamento")}
+        >
+          <LinearGradient colors={["#0f766e", "#14b8a6"]} style={styles.gradientCard}>
+            <Text style={styles.cardIcon}>📅</Text>
+            <Text style={styles.gridCardTitle}>Agendamento</Text>
+            <Text style={styles.gridCardSubtitle}>Marque horários</Text>
+          </LinearGradient>
+        </Pressable>
+
+        {/* RECIBOS */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.gridCard,
+            { width: (width - 42) / 2 },
+            pressed && styles.cardPressed,
+          ]}
+          onPress={() => navigation.navigate("Receipts")}
+        >
+          <LinearGradient colors={["#92400e", "#f59e0b"]} style={styles.gradientCard}>
+            <Text style={styles.cardIcon}>🧾</Text>
+            <Text style={styles.gridCardTitle}>Recibos</Text>
+            <Text style={styles.gridCardSubtitle}>Veja seus pagamentos</Text>
           </LinearGradient>
         </Pressable>
       </View>
