@@ -1,9 +1,10 @@
-// app/(tabs)/index.ts
+// app/(tabs)/index.tsx
 import DashboardScreen from "@/src/screens/DashboardScreen";
 import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
 
 import Agendamento from "../../src/screens/Agendamento";
+import DesafiosScreen from "../../src/screens/DesafiosScreen";
 import HomeScreen from "../../src/screens/HomeScreen";
 import ListaUsuarios from "../../src/screens/ListaUsuarios";
 import LoginScreen from "../../src/screens/LoginScreen";
@@ -12,8 +13,8 @@ import Receipts from "../../src/screens/Receipts";
 import RegisterScreen from "../../src/screens/RegisterScreen";
 import RewardsList from "../../src/screens/RewardsList";
 import ShopCart from "../../src/screens/ShopCart";
+import TreinarScreen from "../../src/screens/TreinarScreen";
 
-// IMPORTAÇÃO CORRETA DO STORE PROVIDER
 import { StoreProvider } from "../../src/screens/Store";
 
 export type RootStackParamList = {
@@ -27,6 +28,8 @@ export type RootStackParamList = {
   RewardsList: undefined;
   ShopCart: undefined;
   Receipts: undefined;
+  Desafios: undefined;
+  Treinar: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -48,6 +51,8 @@ export default function RootStack() {
         <Stack.Screen name="RewardsList" component={RewardsList} />
         <Stack.Screen name="ShopCart" component={ShopCart} />
         <Stack.Screen name="Receipts" component={Receipts} />
+        <Stack.Screen name="Desafios" component={DesafiosScreen} />
+        <Stack.Screen name="Treinar" component={TreinarScreen} />
       </Stack.Navigator>
     </StoreProvider>
   );

@@ -1,12 +1,11 @@
 "use client"
 
-// src/screens/Receipts.tsx
-import { onAuthStateChanged, type User } from "firebase/auth"
-import { collection, getDocs, orderBy, query } from "firebase/firestore"
-import { useEffect, useState } from "react"
-import { ActivityIndicator, Dimensions, FlatList, StyleSheet, Text, View } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
-import { auth, db } from "../services/connectionFirebase"
+import { onAuthStateChanged, type User } from "firebase/auth"
+import { get, ref } from "firebase/database"; // Realtime DB
+import { useEffect, useState } from "react"
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native"
+import { auth, database } from "../services/connectionFirebase"
 
 type ReceiptItem = { id: string; nome: string; precoXP: number; quantity: number }
 type Receipt = {
@@ -14,10 +13,8 @@ type Receipt = {
   items: ReceiptItem[]
   totalXP: number
   totalItens?: number
-  createdAt?: any
+  createdAt?: string
 }
-
-const { width } = Dimensions.get("window")
 
 export default function Receipts() {
   const [receipts, setReceipts] = useState<Receipt[]>([])
@@ -43,22 +40,29 @@ export default function Receipts() {
   const fetchReceipts = async () => {
     setLoading(true)
     try {
-      const receiptsRef = collection(db, "users", uid!, "comprovantes")
-      const q = query(receiptsRef, orderBy("createdAt", "desc"))
-      const snapshot = await getDocs(q)
+      const receiptsRef = ref(database, `users/${uid}/comprovantes`)
+      // Realtime DB retorna um objeto onde as chaves são os IDs
+      const snapshot = await get(receiptsRef)
 
-      const data = snapshot.docs.map((doc) => {
-        const d = doc.data() as any
-        return {
-          id: doc.id,
-          items: d.items || [],
-          totalXP: d.totalXP ?? 0,
-          totalItens: d.totalItens ?? 0,
-          createdAt: d.createdAt ?? null,
-        } as Receipt
-      })
+      if (snapshot.exists()) {
+        const data = snapshot.val()
+        // Converter objeto em array
+        const list: Receipt[] = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+        }))
 
-      setReceipts(data)
+        // Ordenar decrescente pela data (mais recente primeiro)
+        list.sort((a, b) => {
+            const dateA = new Date(a.createdAt || 0).getTime();
+            const dateB = new Date(b.createdAt || 0).getTime();
+            return dateB - dateA;
+        })
+
+        setReceipts(list)
+      } else {
+        setReceipts([])
+      }
     } catch (e) {
       console.error("Erro ao buscar comprovantes", e)
     } finally {
@@ -66,12 +70,10 @@ export default function Receipts() {
     }
   }
 
-  const formatDate = (v: any) => {
-    if (!v) return "—"
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "—"
     try {
-      if (typeof v?.toDate === "function") return v.toDate().toLocaleString("pt-BR")
-      if (v?.seconds) return new Date(v.seconds * 1000).toLocaleString("pt-BR")
-      return new Date(v).toLocaleString("pt-BR")
+      return new Date(dateString).toLocaleString("pt-BR")
     } catch {
       return "—"
     }
@@ -103,12 +105,12 @@ export default function Receipts() {
               style={styles.dateHeader}
             >
               <Text style={styles.dateIcon}>📅</Text>
-              <Text style={styles.dateText}>{formatDate(item.createdAt)}</Text>
+              <Text style={styles.dateText}>{formatDate(item.createdAt || "")}</Text>
             </LinearGradient>
 
             <View style={styles.itemsContainer}>
-              {item.items.map((i) => (
-                <View key={i.id} style={styles.itemRow}>
+              {item.items && item.items.map((i, index) => (
+                <View key={`${i.id}-${index}`} style={styles.itemRow}>
                   <View style={styles.itemLeft}>
                     <Text style={styles.itemName}>{i.nome}</Text>
                     <Text style={styles.itemQuantity}>Quantidade: {i.quantity}</Text>
