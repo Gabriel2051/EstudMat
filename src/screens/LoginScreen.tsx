@@ -17,8 +17,8 @@ import {
   View,
 } from "react-native"
 import type { RootStackParamList } from "../../app/(tabs)/index"
-import { auth } from "../services/connectionFirebase"
 import { useResponsive } from "../hooks/useResponsive"
+import { auth } from "../services/connectionFirebase"
 
 type NavigationProps = StackNavigationProp<RootStackParamList>
 
@@ -66,7 +66,6 @@ export default function LoginScreen() {
       setEmail("")
       setSenha("")
 
-      // Mantive o replace para não empilhar telas
       setTimeout(() => {
         navigation.replace("Dashboard")
       }, 900)
@@ -101,13 +100,13 @@ export default function LoginScreen() {
           <View style={styles.divider} />
 
           <Text style={styles.subtitle}>
-            Continue sua <Text style={styles.highlight}>jornada matemática</Text>!
+            Continue a sua <Text style={styles.highlight}>jornada matemática</Text>!
           </Text>
 
           <TextInput
             style={styles.input}
             placeholder="E-mail"
-            placeholderTextColor="rgba(255,255,255,0.6)"
+            placeholderTextColor="rgba(255,255,255,0.4)"
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
@@ -121,7 +120,7 @@ export default function LoginScreen() {
             ref={senhaInputRef}
             style={styles.input}
             placeholder="Senha"
-            placeholderTextColor="rgba(255,255,255,0.6)"
+            placeholderTextColor="rgba(255,255,255,0.4)"
             secureTextEntry
             value={senha}
             onChangeText={setSenha}
@@ -132,30 +131,28 @@ export default function LoginScreen() {
           <Pressable
             android_ripple={{ color: "rgba(255,255,255,0.06)" }}
             style={styles.forgotPassword}
-            // Mantive sem onPress porque você não tinha rota definida; troque se quiser funcionalidade
             onPress={() => {}}
           >
             <Text style={styles.forgotText}>Esqueceu a senha?</Text>
           </Pressable>
 
-          {/* Botão principal — Pressable para ripple + LinearGradient */}
           <Pressable
-            android_ripple={{ color: "rgba(255,255,255,0.06)" }}
+            android_ripple={{ color: "rgba(239,68,68,0.2)" }}
             style={({ pressed }) => [
               styles.pressable,
-              pressed ? styles.pressablePressed : null,
-              loading ? styles.pressableDisabled : null,
+              pressed && styles.pressablePressed,
+              loading && styles.pressableDisabled,
             ]}
             onPress={handleLogin}
             disabled={loading}
           >
             <LinearGradient
-              colors={["#260000", "#ff2b2b"]}
+              colors={["#7f1d1d", "#ef4444"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.button}
             >
-              <Text style={styles.buttonText}>{loading ? "Entrando..." : "Entrar"}</Text>
+              <Text style={styles.buttonText}>{loading ? "ENTRANDO..." : "ENTRAR"}</Text>
             </LinearGradient>
           </Pressable>
 
@@ -188,18 +185,23 @@ const styles = StyleSheet.create({
   },
   card: {
     maxWidth: "100%",
-    paddingVertical: 32,
+    paddingVertical: 40,
     paddingHorizontal: 24,
-    borderRadius: 20,
+    borderRadius: 24, // Suavizado
     backgroundColor: "#1a1a1f",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: "rgba(255,255,255,0.1)", // Efeito Glassmorphism
+    shadowColor: "#ef4444",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
   },
   logo: {
     width: 90,
     height: 90,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   title: {
     fontSize: 26,
@@ -209,31 +211,31 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   brand: {
-    color: "#6366f1",
+    color: "#ef4444", // Novo vermelho
   },
   divider: {
-    height: 3,
+    height: 4,
     width: 60,
-    borderRadius: 4,
-    marginVertical: 12,
-    backgroundColor: "rgba(99,102,241,0.4)",
+    borderRadius: 6,
+    marginVertical: 16,
+    backgroundColor: "rgba(239,68,68,0.5)",
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 15,
     color: "rgba(255,255,255,0.6)",
     textAlign: "center",
     marginBottom: 24,
   },
   highlight: {
-    color: "#8b5cf6",
+    color: "#f87171",
     fontWeight: "600",
   },
   input: {
     width: "100%",
-    backgroundColor: "rgba(255,255,255,0.04)",
-    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 16,
     paddingHorizontal: 16,
-    paddingVertical: 13,
+    paddingVertical: 16,
     fontSize: 15,
     color: "#ffffff",
     marginBottom: 14,
@@ -242,7 +244,7 @@ const styles = StyleSheet.create({
   },
   forgotPassword: {
     alignSelf: "flex-end",
-    marginBottom: 18,
+    marginBottom: 20,
     paddingVertical: 6,
     paddingHorizontal: 8,
     borderRadius: 8,
@@ -255,28 +257,28 @@ const styles = StyleSheet.create({
   pressable: {
     width: "100%",
     alignItems: "center",
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: "hidden",
-    marginBottom: 14,
+    marginBottom: 16,
   },
   pressablePressed: {
     opacity: 0.85,
+    transform: [{ scale: 0.98 }],
   },
   pressableDisabled: {
     opacity: 0.6,
   },
   button: {
     width: "100%",
-    borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 16,
     alignItems: "center",
     justifyContent: "center",
   },
   buttonText: {
     color: "#ffffff",
     fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+    fontWeight: "800",
+    letterSpacing: 1,
   },
   registerLink: {
     marginTop: 8,
@@ -290,19 +292,28 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   registerTextHighlight: {
-    color: "#6366f1",
+    color: "#ef4444",
     fontWeight: "700",
   },
   message: {
-    marginBottom: 16,
+    marginBottom: 20,
     fontSize: 14,
     textAlign: "center",
-    fontWeight: "600",
+    fontWeight: "700",
+    padding: 10,
+    borderRadius: 8,
+    width: "100%",
   },
   error: {
+    backgroundColor: "rgba(239,68,68,0.1)",
     color: "#ef4444",
+    borderWidth: 1,
+    borderColor: "rgba(239,68,68,0.3)",
   },
   success: {
+    backgroundColor: "rgba(16,185,129,0.1)",
     color: "#10b981",
+    borderWidth: 1,
+    borderColor: "rgba(16,185,129,0.3)",
   },
 })

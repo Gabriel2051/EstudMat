@@ -3,6 +3,7 @@ import DashboardScreen from "@/src/screens/DashboardScreen";
 import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
 
+import SelecaoExercicios from "@/src/screens/SelecaoExercicios";
 import Agendamento from "../../src/screens/Agendamento";
 import DesafiosScreen from "../../src/screens/DesafiosScreen";
 import HomeScreen from "../../src/screens/HomeScreen";
@@ -30,6 +31,7 @@ export type RootStackParamList = {
   Receipts: undefined;
   Desafios: undefined;
   Treinar: undefined;
+  SelecaoExercicios: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -53,6 +55,7 @@ export default function RootStack() {
         <Stack.Screen name="Receipts" component={Receipts} />
         <Stack.Screen name="Desafios" component={DesafiosScreen} />
         <Stack.Screen name="Treinar" component={TreinarScreen} />
+        <Stack.Screen name="SelecaoExercicios" component={SelecaoExercicios} />
       </Stack.Navigator>
     </StoreProvider>
   );

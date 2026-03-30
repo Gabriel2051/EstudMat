@@ -135,11 +135,11 @@ export default function DashboardScreen() {
             { width: (width - 42) / 2 },
             pressed && { opacity: 0.8 },
           ]}
-          onPress={() => navigation.navigate("Treinar")}
+          onPress={() => navigation.navigate("SelecaoExercicios")}
         >
           <LinearGradient colors={["#1e1b4b", "#312e81"]} style={styles.gradientCard}>
             <Text style={styles.cardIcon}>📚</Text>
-            <Text style={styles.gridCardTitle}>Treinar</Text>
+            <Text style={styles.gridCardTitle}>Exercicios</Text>
             <Text style={styles.gridCardSubtitle}>Pratique exercícios</Text>
           </LinearGradient>
         </Pressable>

@@ -1,10 +1,10 @@
 "use client"
 
-import { onAuthStateChanged, type User } from "firebase/auth"
+import { onAuthStateChanged, type User } from "firebase/auth";
 import { get, push, ref, set, update } from "firebase/database"; // Mudamos para Realtime DB
-import { createContext, type ReactNode, useContext, useEffect, useState } from "react"
+import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import { auth, database } from "../services/connectionFirebase"; // Usamos 'database' agora
-import { WebStorage } from "../utils/webStorage"
+import { WebStorage } from "../utils/webStorage";
 
 export type Reward = {
   id: string
@@ -26,6 +26,7 @@ type StoreContextType = {
   decrementQty: (rewardId: string) => void
   clearCart: () => void
   purchaseCart: (nomeCliente?: string) => Promise<{ success: boolean; message: string }>
+  addXP: (amount: number) => Promise<void>;
   inventory: Reward[]
   reloadXP: () => Promise<void>
 }
@@ -75,7 +76,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         // Se o XP não existir no banco, assumimos 5000
         const serverXP = typeof data.xp === "number" ? data.xp : 5000
         const serverInv = data.inventory || []
-        
+
         setXp(serverXP)
         setInventory(serverInv)
       } else {
@@ -93,6 +94,20 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       console.error("Erro ao carregar dados do usuário:", e)
     }
   }
+
+  const addXP = async (amount: number) => {
+    if (!uid) return;
+    try {
+      const newXP = xp + amount;
+      const userRef = ref(database, `users/${uid}`);
+      await update(userRef, { xp: newXP });
+      setXp(newXP); // Atualiza o estado local
+    } catch (e) {
+      console.error("Erro ao adicionar XP:", e);
+    }
+  };
+
+  // Não esqueça de adicionar 'addXP' ao value do Provider
 
   useEffect(() => {
     if (!authLoading && uid) {
@@ -140,13 +155,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const decrementQty = (rewardId: string) => {
     setCart((prev) =>
       prev.map((i) => {
-          if (i.id === rewardId) {
-            const newQty = i.quantity - 1
-            if (newQty <= 0) return null
-            return { ...i, quantity: newQty }
-          }
-          return i
-        }).filter((i): i is CartItem => i !== null),
+        if (i.id === rewardId) {
+          const newQty = i.quantity - 1
+          if (newQty <= 0) return null
+          return { ...i, quantity: newQty }
+        }
+        return i
+      }).filter((i): i is CartItem => i !== null),
     )
   }
 
@@ -166,7 +181,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     try {
       const userRef = ref(database, `users/${uid}`)
       const snapshot = await get(userRef)
-      
+
       let currentXP = 5000
       let currentInventory: Reward[] = []
 
@@ -194,7 +209,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       // 2. Criar comprovante no Realtime DB (users/UID/comprovantes)
       const receiptsRef = ref(database, `users/${uid}/comprovantes`)
       const newReceiptRef = push(receiptsRef)
-      
+
       const receiptData = {
         nomeCliente: nomeCliente ?? "Usuário",
         items: cart,
@@ -225,7 +240,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       return { success: false, message: e.message || "Erro ao processar compra." }
     }
   }
-
   return (
     <StoreContext.Provider
       value={{
@@ -238,6 +252,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         decrementQty,
         clearCart,
         purchaseCart,
+        addXP,
         inventory,
         reloadXP,
       }}
