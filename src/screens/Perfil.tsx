@@ -1,16 +1,16 @@
 "use client"
 
 // screens/Perfil.tsx
-import { useEffect, useState } from "react"
-import { View, Text, TextInput, ScrollView, StyleSheet, Pressable, Platform } from "react-native"
-import { LinearGradient } from "expo-linear-gradient"
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native"
 import type { StackNavigationProp } from "@react-navigation/stack"
-import { ref, get, update, set } from "firebase/database"
-import { database, auth } from "../services/connectionFirebase"
-import { promiseWithTimeout } from "../utils/promiseWithTimeout" // Import promiseWithTimeout
+import { LinearGradient } from "expo-linear-gradient"
+import { get, ref, set, update } from "firebase/database"
+import { useEffect, useState } from "react"
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
 import type { RootStackParamList } from "../../app/(tabs)/index"
+import { auth, database } from "../services/connectionFirebase"
 import { showAlert } from "../utils/platformAlert"
+import { promiseWithTimeout } from "../utils/promiseWithTimeout"
 
 type PerfilRouteProp = RouteProp<RootStackParamList, "Perfil">
 type PerfilNavigationProp = StackNavigationProp<RootStackParamList, "Perfil">
@@ -171,7 +171,7 @@ export default function Perfil() {
           value={nome}
           onChangeText={setNome}
           placeholder="Nome"
-          placeholderTextColor="rgba(255,255,255,0.5)"
+          placeholderTextColor="rgba(255,255,255,0.4)"
           editable={!loading}
           returnKeyType="next"
         />
@@ -183,7 +183,7 @@ export default function Perfil() {
           placeholder="Email"
           keyboardType="email-address"
           autoCapitalize="none"
-          placeholderTextColor="rgba(255,255,255,0.5)"
+          placeholderTextColor="rgba(255,255,255,0.4)"
           editable={!loading}
           returnKeyType="next"
         />
@@ -194,7 +194,7 @@ export default function Perfil() {
           onChangeText={setPhone}
           placeholder="Telefone"
           keyboardType="phone-pad"
-          placeholderTextColor="rgba(255,255,255,0.5)"
+          placeholderTextColor="rgba(255,255,255,0.4)"
           editable={!loading}
           returnKeyType="next"
         />
@@ -204,13 +204,13 @@ export default function Perfil() {
           value={city}
           onChangeText={setCity}
           placeholder="Cidade"
-          placeholderTextColor="rgba(255,255,255,0.5)"
+          placeholderTextColor="rgba(255,255,255,0.4)"
           editable={!loading}
           returnKeyType="done"
         />
 
         <Pressable
-          android_ripple={{ color: "rgba(255,255,255,0.08)" }}
+          android_ripple={{ color: "rgba(239,68,68,0.2)" }}
           style={({ pressed }) => [
             styles.pressable,
             pressed ? styles.pressablePressed : null,
@@ -220,12 +220,12 @@ export default function Perfil() {
           disabled={loading}
         >
           <LinearGradient
-            colors={["#6366f1", "#8b5cf6"]}
+            colors={["#7f1d1d", "#ef4444"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.button}
           >
-            <Text style={styles.buttonText}>{loading ? "Salvando..." : "✓ Salvar Alterações"}</Text>
+            <Text style={styles.buttonText}>{loading ? "SALVANDO..." : "✓ SALVAR ALTERAÇÕES"}</Text>
           </LinearGradient>
         </Pressable>
 
@@ -236,7 +236,7 @@ export default function Perfil() {
           disabled={loading}
         >
           <View style={styles.secondaryButton}>
-            <Text style={styles.secondaryButtonText}>👤 Dados do Usuario</Text>
+            <Text style={styles.secondaryButtonText}>👤 Dados do Usuário</Text>
           </View>
         </Pressable>
 
@@ -252,13 +252,13 @@ export default function Perfil() {
         </Pressable>
 
         <Pressable
-          android_ripple={{ color: "rgba(255,255,255,0.06)" }}
+          android_ripple={{ color: "rgba(239,68,68,0.1)" }}
           style={({ pressed }) => [styles.secondaryPressable, pressed && styles.pressablePressed]}
           onPress={testarConexao}
           disabled={loading}
         >
-          <View style={[styles.secondaryButton, { borderColor: "rgba(139,92,246,0.3)" }]}>
-            <Text style={[styles.secondaryButtonText, { color: "#a78bfa" }]}>🔧 Testar Conexão</Text>
+          <View style={[styles.secondaryButton, { borderColor: "rgba(239,68,68,0.3)", backgroundColor: "rgba(239,68,68,0.05)" }]}>
+            <Text style={[styles.secondaryButtonText, { color: "#f87171" }]}>🔧 Testar Conexão</Text>
           </View>
         </Pressable>
 
@@ -280,15 +280,20 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 420,
     backgroundColor: "#1a1a1f",
-    borderRadius: 18,
-    paddingVertical: 32,
-    paddingHorizontal: 20,
+    borderRadius: 24, // Suavizado
+    paddingVertical: 40,
+    paddingHorizontal: 24,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: "rgba(255,255,255,0.1)", // Glassmorphism
+    shadowColor: "#ef4444",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "800",
     color: "#ffffff",
     textAlign: "center",
@@ -297,23 +302,23 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === "android" ? "sans-serif-medium" : "System",
   },
   brand: {
-    color: "#6366f1",
+    color: "#ef4444", // Novo vermelho
   },
   divider: {
-    height: 3,
-    width: 50,
+    height: 4,
+    width: 60,
     borderRadius: 6,
     alignSelf: "center",
-    marginBottom: 20,
-    backgroundColor: "rgba(99,102,241,0.4)",
+    marginBottom: 24,
+    backgroundColor: "rgba(239,68,68,0.5)",
   },
   input: {
     width: "100%",
-    backgroundColor: "rgba(255,255,255,0.04)",
+    backgroundColor: "rgba(255,255,255,0.05)",
     color: "#ffffff",
     paddingHorizontal: 16,
-    paddingVertical: Platform.OS === "ios" ? 13 : 11,
-    borderRadius: 12,
+    paddingVertical: Platform.OS === "ios" ? 16 : 14,
+    borderRadius: 16, // Mais arredondado
     marginBottom: 14,
     fontSize: 15,
     borderWidth: 1,
@@ -322,53 +327,54 @@ const styles = StyleSheet.create({
   },
   pressable: {
     width: "100%",
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: "hidden",
-    marginTop: 6,
+    marginTop: 8,
     alignItems: "center",
   },
   pressablePressed: {
     opacity: 0.85,
+    transform: [{ scale: 0.98 }],
   },
   pressableDisabled: {
-    opacity: 0.5,
+    opacity: 0.6,
   },
   button: {
     width: "100%",
-    paddingVertical: 14,
+    paddingVertical: 16,
     alignItems: "center",
-    borderRadius: 12,
+    borderRadius: 16,
   },
   buttonText: {
     color: "#ffffff",
-    fontWeight: "700",
+    fontWeight: "800",
     fontSize: 15,
-    letterSpacing: 0.6,
+    letterSpacing: 1,
     fontFamily: Platform.OS === "android" ? "sans-serif-medium" : "System",
   },
   secondaryPressable: {
     width: "100%",
-    marginTop: 10,
-    borderRadius: 10,
+    marginTop: 12,
+    borderRadius: 12,
     overflow: "hidden",
   },
   secondaryButton: {
-    backgroundColor: "rgba(255,255,255,0.04)",
-    paddingVertical: 12,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    paddingVertical: 14,
     alignItems: "center",
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
   },
   secondaryButtonText: {
     color: "rgba(255,255,255,0.8)",
-    fontWeight: "600",
-    fontSize: 13,
+    fontWeight: "700",
+    fontSize: 14,
   },
   smallText: {
-    marginTop: 16,
-    color: "rgba(255,255,255,0.5)",
+    marginTop: 20,
+    color: "rgba(255,255,255,0.4)",
     textAlign: "center",
-    fontSize: 12,
+    fontSize: 13,
   },
 })

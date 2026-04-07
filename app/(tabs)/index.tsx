@@ -14,7 +14,10 @@ import Receipts from "../../src/screens/Receipts";
 import RegisterScreen from "../../src/screens/RegisterScreen";
 import RewardsList from "../../src/screens/RewardsList";
 import ShopCart from "../../src/screens/ShopCart";
+import TreinarFase2 from "../../src/screens/TreinarFase2";
+import TreinarFase3 from "../../src/screens/TreinarFase3";
 import TreinarScreen from "../../src/screens/TreinarScreen";
+
 
 import { StoreProvider } from "../../src/screens/Store";
 
@@ -32,6 +35,8 @@ export type RootStackParamList = {
   Desafios: undefined;
   Treinar: undefined;
   SelecaoExercicios: undefined;
+  TreinarFase2: undefined;
+  TreinarFase3: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -56,6 +61,8 @@ export default function RootStack() {
         <Stack.Screen name="Desafios" component={DesafiosScreen} />
         <Stack.Screen name="Treinar" component={TreinarScreen} />
         <Stack.Screen name="SelecaoExercicios" component={SelecaoExercicios} />
+        <Stack.Screen name="TreinarFase2" component={TreinarFase2} />
+        <Stack.Screen name="TreinarFase3" component={TreinarFase3} />
       </Stack.Navigator>
     </StoreProvider>
   );

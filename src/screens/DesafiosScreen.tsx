@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native"
 import type { StackNavigationProp } from "@react-navigation/stack"
 import { LinearGradient } from "expo-linear-gradient"
 import { useEffect, useState } from "react"
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 import type { RootStackParamList } from "../../app/(tabs)/index"
 import { useStore } from "./Store"
 
@@ -28,7 +28,7 @@ export default function DesafiosScreen() {
 
     const handleStart = (challenge: Challenge) => {
         if (challenge.completed) return
-        navigation.navigate("Treinar")
+        navigation.navigate("TreinarFase1" as never) // Ajustado para ir para a fase
     }
 
     useEffect(() => {
@@ -69,30 +69,46 @@ export default function DesafiosScreen() {
 
     return (
         <View style={styles.container}>
-            {/* HEADER */}
-            <View style={styles.header}>
-                <Text style={styles.title}>🎯 Desafios</Text>
-                <Text style={styles.subtitle}>Complete missões e ganhe XP</Text>
+            {/* NOVO CABEÇALHO COM BOTÃO VOLTAR (Spacer Layout) */}
+            <View style={styles.headerContainer}>
+                <Pressable 
+                    style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.7 }]} 
+                    onPress={() => navigation.navigate("Dashboard")}
+                >
+                    <Text style={styles.backButtonText}>← Voltar</Text>
+                </Pressable>
+                
+                <View style={styles.titleWrapper}>
+                    <Text style={styles.headerTitle}>🎯 Desafios</Text>
+                </View>
+                
+                <View style={styles.spacer} />
+            </View>
 
+            {/* SUBTÍTULO E XP */}
+            <View style={styles.subHeader}>
+                <Text style={styles.subtitle}>Complete missões e ganhe XP</Text>
                 <View style={styles.xpBox}>
                     <Text style={styles.xpText}>{xp} XP</Text>
                 </View>
             </View>
 
             {/* LISTA */}
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
                 {challenges.map((challenge) => {
                     const progressPercent = challenge.progress / challenge.total
 
                     return (
                         <View key={challenge.id} style={styles.card}>
                             <LinearGradient
-                                colors={["#1e1b4b", "#312e81"]}
+                                colors={["#1a1a1f", "#1a1a1f"]} // Fundo escuro do cartão
                                 style={styles.gradient}
                             >
                                 <View style={styles.cardHeader}>
                                     <Text style={styles.cardTitle}>{challenge.title}</Text>
-                                    <Text style={styles.xpReward}>+{challenge.xp} XP</Text>
+                                    <View style={styles.xpBadgeCard}>
+                                        <Text style={styles.xpReward}>+{challenge.xp} XP</Text>
+                                    </View>
                                 </View>
 
                                 <Text style={styles.description}>
@@ -103,7 +119,7 @@ export default function DesafiosScreen() {
                                 <View style={styles.progressContainer}>
                                     <View style={styles.progressBar}>
                                         <LinearGradient
-                                            colors={["#6366f1", "#8b5cf6"]}
+                                            colors={challenge.completed ? ["#10b981", "#059669"] : ["#7f1d1d", "#ef4444"]}
                                             style={[
                                                 styles.progressFill,
                                                 { width: `${progressPercent * 100}%` },
@@ -112,7 +128,7 @@ export default function DesafiosScreen() {
                                     </View>
 
                                     <Text style={styles.progressText}>
-                                        {challenge.progress}/{challenge.total}
+                                        {challenge.progress} / {challenge.total}
                                     </Text>
                                 </View>
 
@@ -120,15 +136,16 @@ export default function DesafiosScreen() {
                                 <Pressable
                                     style={({ pressed }) => [
                                         styles.button,
-                                        challenge.completed && styles.buttonDisabled,
+                                        challenge.completed ? styles.buttonCompleted : styles.buttonActive,
                                         pressed && { opacity: 0.8 },
                                     ]}
-                                    onPress={() => {
-                                        if (!challenge.completed) navigation.navigate("Treinar")
-                                    }}
+                                    onPress={() => handleStart(challenge)}
                                 >
-                                    <Text style={styles.buttonText}>
-                                        {challenge.completed ? "✔ Concluído" : "Iniciar"}
+                                    <Text style={[
+                                        styles.buttonText, 
+                                        challenge.completed ? styles.buttonTextCompleted : styles.buttonTextActive
+                                    ]}>
+                                        {challenge.completed ? "✔ CONCLUÍDO" : "INICIAR"}
                                     </Text>
                                 </Pressable>
                             </LinearGradient>
@@ -145,104 +162,141 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#0f0f14",
         padding: 16,
+        paddingTop: Platform.OS === 'ios' ? 60 : 50,
     },
+    
+    // Cabeçalho Spacer
+    headerContainer: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        marginBottom: 16,
+        width: '100%',
+    },
+    backButton: {
+        width: 85,
+        paddingVertical: 8,
+        alignItems: 'center',
+        backgroundColor: "rgba(255,255,255,0.1)",
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.15)"
+    },
+    backButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+    titleWrapper: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    headerTitle: { color: "#ffffff", fontSize: 24, fontWeight: "800" },
+    spacer: { width: 85 },
 
-    header: {
+    subHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
         marginBottom: 20,
+        paddingHorizontal: 4,
     },
-
-    title: {
-        color: "#fff",
-        fontSize: 26,
-        fontWeight: "800",
-    },
-
     subtitle: {
         color: "rgba(255,255,255,0.6)",
-        marginBottom: 10,
+        fontSize: 13,
+        fontWeight: "600",
+        flex: 1,
     },
-
     xpBox: {
-        alignSelf: "flex-start",
-        backgroundColor: "rgba(99,102,241,0.15)",
+        backgroundColor: "rgba(239,68,68,0.15)", // Fundo avermelhado
         paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 10,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "rgba(239,68,68,0.3)",
     },
-
     xpText: {
-        color: "#a5b4fc",
-        fontWeight: "700",
+        color: "#f87171",
+        fontWeight: "800",
+        fontSize: 13,
     },
 
     card: {
-        marginBottom: 14,
-        borderRadius: 14,
+        marginBottom: 16,
+        borderRadius: 16,
         overflow: "hidden",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.08)", // Efeito Glassmorphism
     },
-
     gradient: {
-        padding: 16,
+        padding: 20,
     },
-
     cardHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
-        marginBottom: 6,
+        alignItems: "center",
+        marginBottom: 8,
     },
-
     cardTitle: {
         color: "#fff",
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: "800",
+        flex: 1,
     },
-
+    xpBadgeCard: {
+        backgroundColor: "rgba(255,255,255,0.05)",
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
+    },
     xpReward: {
-        color: "#a5b4fc",
-        fontWeight: "700",
+        color: "#f87171", // Vermelho destaque
+        fontWeight: "800",
+        fontSize: 12,
     },
-
     description: {
-        color: "rgba(255,255,255,0.7)",
-        fontSize: 13,
-        marginBottom: 10,
+        color: "rgba(255,255,255,0.6)",
+        fontSize: 14,
+        marginBottom: 16,
     },
-
     progressContainer: {
-        marginBottom: 12,
+        marginBottom: 16,
     },
-
     progressBar: {
         height: 8,
-        backgroundColor: "rgba(255,255,255,0.1)",
+        backgroundColor: "rgba(255,255,255,0.05)",
         borderRadius: 6,
         overflow: "hidden",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.05)",
     },
-
     progressFill: {
         height: "100%",
         borderRadius: 6,
     },
-
     progressText: {
-        color: "rgba(255,255,255,0.6)",
-        fontSize: 11,
-        marginTop: 4,
+        color: "rgba(255,255,255,0.5)",
+        fontSize: 12,
+        fontWeight: "700",
+        marginTop: 6,
+        textAlign: "right",
     },
 
     button: {
-        backgroundColor: "rgba(99,102,241,0.2)",
-        paddingVertical: 10,
-        borderRadius: 10,
+        paddingVertical: 12,
+        borderRadius: 12,
         alignItems: "center",
+        borderWidth: 1,
     },
-
-    buttonDisabled: {
-        backgroundColor: "rgba(34,197,94,0.2)",
+    buttonActive: {
+        backgroundColor: "rgba(239,68,68,0.15)",
+        borderColor: "rgba(239,68,68,0.3)",
     },
-
+    buttonCompleted: {
+        backgroundColor: "rgba(16,185,129,0.1)",
+        borderColor: "rgba(16,185,129,0.2)",
+    },
     buttonText: {
-        color: "#fff",
-        fontWeight: "700",
+        fontWeight: "800",
+        letterSpacing: 1,
+        fontSize: 14,
+    },
+    buttonTextActive: {
+        color: "#f87171",
+    },
+    buttonTextCompleted: {
+        color: "#10b981", // Verde sucesso
     },
 })

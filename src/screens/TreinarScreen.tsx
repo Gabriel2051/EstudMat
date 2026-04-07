@@ -1,3 +1,5 @@
+"use client"
+
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from 'react';
@@ -84,7 +86,7 @@ export default function TreinarScreen() {
           style={({ pressed }) => [styles.botao, pressed && styles.botaoPressed, { marginTop: 40 }]} 
           onPress={() => navigation.navigate("SelecaoExercicios")}
         >
-          <LinearGradient colors={["#6366f1", "#8b5cf6"]} style={styles.gradient}>
+          <LinearGradient colors={["#7f1d1d", "#ef4444"]} style={styles.gradient}>
             <Text style={styles.botaoText}>CONTINUAR</Text>
           </LinearGradient>
         </Pressable>
@@ -100,7 +102,7 @@ export default function TreinarScreen() {
       style={styles.container} 
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.progresso}>QUESTÃO {contador} DE 10</Text>
           <View style={styles.xpBadge}>
@@ -122,7 +124,7 @@ export default function TreinarScreen() {
             keyboardType="numeric"
             value={resposta}
             onChangeText={setResposta}
-            placeholder="Sua resposta"
+            placeholder="A tua resposta"
             placeholderTextColor="rgba(255,255,255,0.3)"
             autoFocus={true}
             onSubmitEditing={validarResposta}
@@ -132,7 +134,7 @@ export default function TreinarScreen() {
             style={({ pressed }) => [styles.botao, pressed && styles.botaoPressed]} 
             onPress={validarResposta}
           >
-            <LinearGradient colors={["#6366f1", "#8b5cf6"]} style={styles.gradient}>
+            <LinearGradient colors={["#7f1d1d", "#ef4444"]} style={styles.gradient}>
               <Text style={styles.botaoText}>CONFIRMAR</Text>
             </LinearGradient>
           </Pressable>
@@ -144,28 +146,32 @@ export default function TreinarScreen() {
 
 const styles = StyleSheet.create({
   // Estilos da Tela Normal
-  container: { flex: 1, backgroundColor: "#0f0f14" },
+  container: { 
+    flex: 1, 
+    backgroundColor: "#0f0f14",
+    paddingTop: Platform.OS === 'ios' ? 50 : 40,
+  },
   scroll: { flexGrow: 1, justifyContent: "center", padding: 20 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 },
-  progresso: { color: "#6366f1", fontSize: 16, fontWeight: "900", letterSpacing: 1 },
-  xpBadge: { backgroundColor: "rgba(99,102,241,0.2)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  xpBadgeText: { color: "#8b5cf6", fontWeight: "700" },
-  card: { backgroundColor: "#1a1a1f", padding: 30, borderRadius: 25, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
-  titulo: { color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: "600", marginBottom: 20, textTransform: "uppercase" },
+  progresso: { color: "#ef4444", fontSize: 16, fontWeight: "900", letterSpacing: 1 },
+  xpBadge: { backgroundColor: "rgba(239,68,68,0.15)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: "rgba(239,68,68,0.3)" },
+  xpBadgeText: { color: "#f87171", fontWeight: "800" },
+  card: { backgroundColor: "#1a1a1f", padding: 30, borderRadius: 24, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  titulo: { color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: "700", marginBottom: 20, textTransform: "uppercase", letterSpacing: 1 },
   perguntaContainer: { marginBottom: 30 },
   perguntaTexto: { color: "#fff", fontSize: 56, fontWeight: "800" },
-  input: { backgroundColor: "rgba(255,255,255,0.05)", color: "#fff", width: "100%", padding: 20, borderRadius: 15, textAlign: "center", fontSize: 24, marginBottom: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
-  botao: { width: "100%", borderRadius: 15, overflow: "hidden" },
-  botaoPressed: { opacity: 0.8 },
+  input: { backgroundColor: "rgba(255,255,255,0.05)", color: "#fff", width: "100%", padding: 20, borderRadius: 16, textAlign: "center", fontSize: 24, marginBottom: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  botao: { width: "100%", borderRadius: 16, overflow: "hidden" },
+  botaoPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   gradient: { padding: 18, alignItems: "center" },
-  botaoText: { color: "#fff", fontWeight: "800", fontSize: 18, letterSpacing: 1 },
+  botaoText: { color: "#fff", fontWeight: "800", fontSize: 16, letterSpacing: 1 },
 
   // Estilos da Tela Final (Vitória)
   containerFinal: { flex: 1, backgroundColor: "#0f0f14", justifyContent: 'center', alignItems: 'center', padding: 20 },
   iconeFinal: { fontSize: 80, marginBottom: 20 },
   tituloFinal: { color: "#fff", fontSize: 32, fontWeight: "800", marginBottom: 10 },
   textoFinal: { color: "rgba(255,255,255,0.6)", fontSize: 16, marginBottom: 40 },
-  xpCardFinal: { backgroundColor: "rgba(99,102,241,0.1)", padding: 30, borderRadius: 20, alignItems: 'center', borderWidth: 1, borderColor: "rgba(99,102,241,0.3)", width: '100%' },
-  xpCardLabel: { color: "#a5b4fc", fontSize: 14, fontWeight: "700", letterSpacing: 1, marginBottom: 10 },
+  xpCardFinal: { backgroundColor: "rgba(239,68,68,0.1)", padding: 30, borderRadius: 24, alignItems: 'center', borderWidth: 1, borderColor: "rgba(239,68,68,0.3)", width: '100%' },
+  xpCardLabel: { color: "#f87171", fontSize: 14, fontWeight: "800", letterSpacing: 1, marginBottom: 10 },
   xpCardValue: { color: "#fff", fontSize: 48, fontWeight: "900" }
 });

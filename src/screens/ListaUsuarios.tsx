@@ -1,14 +1,14 @@
 "use client"
 
 // screens/ListaUsuarios.tsx
-import { useEffect, useCallback, useState } from "react"
-import { View, Text, StyleSheet, Dimensions, Pressable, ActivityIndicator } from "react-native"
-import { LinearGradient } from "expo-linear-gradient"
-import { useNavigation, useIsFocused } from "@react-navigation/native"
+import { useIsFocused, useNavigation } from "@react-navigation/native"
 import type { StackNavigationProp } from "@react-navigation/stack"
-import { ref, get } from "firebase/database"
-import { database, auth } from "../services/connectionFirebase"
+import { LinearGradient } from "expo-linear-gradient"
+import { get, ref } from "firebase/database"
+import { useCallback, useEffect, useState } from "react"
+import { ActivityIndicator, Dimensions, Pressable, StyleSheet, Text, View } from "react-native"
 import type { RootStackParamList } from "../../app/(tabs)/index"
+import { auth, database } from "../services/connectionFirebase"
 import { showAlert } from "../utils/platformAlert"
 
 const { width } = Dimensions.get("window")
@@ -84,7 +84,7 @@ export default function ListaUsuarios() {
 
         {loading ? (
           <View style={{ alignItems: "center", marginTop: 24 }}>
-            <ActivityIndicator size="large" color="#8b5cf6" />
+            <ActivityIndicator size="large" color="#ef4444" />
             <Text style={{ color: "rgba(255,255,255,0.7)", marginTop: 8 }}>Carregando...</Text>
           </View>
         ) : userData ? (
@@ -107,7 +107,7 @@ export default function ListaUsuarios() {
             </View>
 
             <Pressable
-              android_ripple={{ color: "rgba(255,255,255,0.06)" }}
+              android_ripple={{ color: "rgba(239,68,68,0.2)" }}
               style={({ pressed }) => [styles.pressable, pressed && styles.pressablePressed]}
               onPress={() => {
                 if (!userData?.uid) {
@@ -118,7 +118,7 @@ export default function ListaUsuarios() {
               }}
             >
               <LinearGradient
-                colors={["#6366f1", "#8b5cf6"]}
+                colors={["#7f1d1d", "#ef4444"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={[styles.button, { marginTop: 20 }]}
@@ -175,12 +175,17 @@ const styles = StyleSheet.create({
   card: {
     width: Math.min(width - 32, 420),
     maxWidth: "100%",
-    paddingVertical: 28,
-    paddingHorizontal: 18,
-    borderRadius: 16,
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+    borderRadius: 24, // Suavizado
     backgroundColor: "#1a1a1f",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: "rgba(255,255,255,0.1)", // Glassmorphism
+    shadowColor: "#ef4444",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
   },
   title: {
     fontSize: 26,
@@ -190,98 +195,101 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   divider: {
-    height: 3,
-    width: 50,
+    height: 4,
+    width: 60,
     borderRadius: 6,
     alignSelf: "center",
-    marginBottom: 20,
-    backgroundColor: "rgba(99,102,241,0.4)",
+    marginBottom: 24,
+    backgroundColor: "rgba(239,68,68,0.5)",
   },
   userCard: {
     backgroundColor: "rgba(255,255,255,0.03)",
-    padding: 18,
-    borderRadius: 14,
-    borderColor: "rgba(99,102,241,0.12)",
+    padding: 20,
+    borderRadius: 16,
+    borderColor: "rgba(239,68,68,0.15)", // Contorno leve avermelhado
     borderWidth: 1,
     alignItems: "center",
   },
   avatarContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: "rgba(99,102,241,0.15)",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(239,68,68,0.1)",
     borderWidth: 2,
-    borderColor: "#6366f1",
+    borderColor: "#ef4444",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 14,
+    marginBottom: 16,
   },
   avatarText: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "800",
-    color: "#6366f1",
+    color: "#ef4444",
   },
   userName: {
     fontSize: 22,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#ffffff",
-    marginBottom: 14,
+    marginBottom: 16,
     textAlign: "center",
   },
   infoRow: {
     flexDirection: "row",
     width: "100%",
-    paddingVertical: 7,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255,255,255,0.05)",
-    marginBottom: 7,
+    marginBottom: 8,
   },
   infoLabel: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.6)",
-    width: 75,
-    fontWeight: "600",
+    fontSize: 14,
+    color: "rgba(255,255,255,0.5)",
+    width: 80,
+    fontWeight: "700",
   },
   infoValue: {
-    fontSize: 13,
+    fontSize: 14,
     color: "rgba(255,255,255,0.9)",
     flex: 1,
+    fontWeight: "600",
   },
   pressable: {
-    borderRadius: 10,
+    borderRadius: 12,
     overflow: "hidden",
     alignSelf: "center",
+    width: "100%",
   },
   pressablePressed: {
     opacity: 0.85,
+    transform: [{ scale: 0.98 }],
   },
   button: {
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 28,
+    borderRadius: 12,
+    paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
   },
   buttonText: {
     color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "800",
     letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
   backPressable: {
     marginTop: 20,
   },
   backButton: {
-    backgroundColor: "rgba(255,255,255,0.04)",
-    padding: 12,
-    borderRadius: 10,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    padding: 14,
+    borderRadius: 12,
     alignItems: "center",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
   },
   backButtonText: {
     color: "rgba(255,255,255,0.8)",
-    fontWeight: "600",
-    fontSize: 13,
+    fontWeight: "700",
+    fontSize: 14,
   },
 })

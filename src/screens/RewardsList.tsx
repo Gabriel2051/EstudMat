@@ -1,18 +1,17 @@
 "use client"
 
-// src/screens/RewardsList.tsx
 import { useNavigation } from "@react-navigation/native"
-import { useEffect, useState } from "react"
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
+import { useEffect, useState } from "react"
+import { ActivityIndicator, FlatList, Image, Platform, Pressable, StyleSheet, Text, View } from "react-native"
+import useResponsive from "../hooks/useResponsive"
 import { type Reward, useStore } from "../screens/Store"
 import { showAlert } from "../utils/platformAlert"
-import useResponsive from "../hooks/useResponsive"
 
 export default function RewardsList() {
   const [rewards, setRewards] = useState<Reward[]>([])
   const [loading, setLoading] = useState(false)
-  const navigation = useNavigation()
+  const navigation = useNavigation<any>()
   const { addToCart, xp } = useStore()
   const { width } = useResponsive()
 
@@ -46,20 +45,35 @@ export default function RewardsList() {
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color="#ef4444" />
       </View>
     )
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>🎁 Loja de Recompensas</Text>
-          <Text style={styles.subtitle}>Resgate itens com seu XP</Text>
+      
+      {/* NOVO CABEÇALHO COM BOTÃO VOLTAR (Spacer Layout) */}
+      <View style={styles.headerContainer}>
+        <Pressable 
+          style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.7 }]} 
+          onPress={() => navigation.navigate("Dashboard")}
+        >
+          <Text style={styles.backButtonText}>← Voltar</Text>
+        </Pressable>
+        
+        <View style={styles.titleWrapper}>
+          <Text style={styles.headerTitle}>🎁 Loja</Text>
         </View>
+        
+        <View style={styles.spacer} />
+      </View>
+
+      {/* HEADER DE XP E SUBTÍTULO */}
+      <View style={styles.xpHeader}>
+        <Text style={styles.subtitle}>Resgate itens com o seu XP</Text>
         <LinearGradient
-          colors={["#6366f1", "#8b5cf6"]}
+          colors={["#7f1d1d", "#ef4444"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.xpBadge}
@@ -73,13 +87,14 @@ export default function RewardsList() {
         data={rewards}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <View style={styles.rewardCard}>
             <View style={styles.imageContainer}>
               {item.imagem ? (
                 <Image source={{ uri: item.imagem }} style={styles.rewardImage} resizeMode="cover" />
               ) : (
-                <LinearGradient colors={["#1e1b4b", "#312e81"]} style={styles.imagePlaceholder}>
+                <LinearGradient colors={["#4a0404", "#991b1b"]} style={styles.imagePlaceholder}>
                   <Text style={styles.placeholderIcon}>🎁</Text>
                 </LinearGradient>
               )}
@@ -98,7 +113,7 @@ export default function RewardsList() {
                 </View>
 
                 <Pressable
-                  android_ripple={{ color: "rgba(99,102,241,0.3)" }}
+                  android_ripple={{ color: "rgba(239,68,68,0.3)" }}
                   style={({ pressed }) => [styles.addButton, pressed && styles.buttonPressed]}
                   onPress={() => {
                     addToCart(item)
@@ -106,12 +121,12 @@ export default function RewardsList() {
                   }}
                 >
                   <LinearGradient
-                    colors={["#6366f1", "#8b5cf6"]}
+                    colors={["#7f1d1d", "#ef4444"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.addButtonGradient}
                   >
-                    <Text style={styles.addButtonText}>Adicionar</Text>
+                    <Text style={styles.addButtonText}>ADICIONAR</Text>
                   </LinearGradient>
                 </Pressable>
               </View>
@@ -121,18 +136,18 @@ export default function RewardsList() {
       />
 
       <Pressable
-        android_ripple={{ color: "rgba(99,102,241,0.3)" }}
+        android_ripple={{ color: "rgba(239,68,68,0.3)" }}
         style={styles.cartButton}
-        onPress={() => navigation.navigate("ShopCart" as never)}
+        onPress={() => navigation.navigate("ShopCart")}
       >
         <LinearGradient
-          colors={["#8b5cf6", "#6366f1"]}
+          colors={["#ef4444", "#7f1d1d"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.cartButtonGradient}
         >
           <Text style={styles.cartButtonIcon}>🛒</Text>
-          <Text style={styles.cartButtonText}>Carrinho</Text>
+          <Text style={styles.cartButtonText}>Ver Carrinho</Text>
         </LinearGradient>
       </Pressable>
     </View>
@@ -144,49 +159,71 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#0f0f14",
     padding: 16,
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
   },
   center: {
     justifyContent: "center",
     alignItems: "center",
   },
-  header: {
+  
+  // Cabeçalho com Spacer
+  headerContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: 20,
+    width: '100%',
+  },
+  backButton: {
+    width: 85,
+    paddingVertical: 8,
+    alignItems: 'center',
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)"
+  },
+  backButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  titleWrapper: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { color: "#ffffff", fontSize: 24, fontWeight: "800" },
+  spacer: { width: 85 },
+
+  // Header do XP
+  xpHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
-  },
-  title: {
-    color: "#ffffff",
-    fontSize: 26,
-    fontWeight: "800",
+    paddingHorizontal: 5,
   },
   subtitle: {
     color: "rgba(255,255,255,0.6)",
-    fontSize: 13,
-    marginTop: 3,
+    fontSize: 14,
+    fontWeight: "600",
   },
   xpBadge: {
     flexDirection: "row",
     alignItems: "baseline",
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 10,
+    borderRadius: 12,
     gap: 5,
   },
   xpText: {
     color: "#ffffff",
     fontSize: 20,
-    fontWeight: "800",
+    fontWeight: "900",
   },
   xpLabel: {
     color: "rgba(255,255,255,0.8)",
-    fontSize: 11,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "700",
   },
+
+  // Cartões de Recompensa
   rewardCard: {
     backgroundColor: "#1a1a1f",
-    borderRadius: 14,
-    marginBottom: 14,
+    borderRadius: 16,
+    marginBottom: 16,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
@@ -194,7 +231,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: "100%",
     height: 150,
-    backgroundColor: "#16161a",
+    backgroundColor: "#111",
   },
   rewardImage: {
     width: "100%",
@@ -210,7 +247,7 @@ const styles = StyleSheet.create({
     fontSize: 40,
   },
   rewardContent: {
-    padding: 14,
+    padding: 16,
   },
   rewardName: {
     color: "#ffffff",
@@ -222,7 +259,7 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.6)",
     fontSize: 13,
     lineHeight: 19,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   rewardFooter: {
     flexDirection: "row",
@@ -235,56 +272,61 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   priceValue: {
-    color: "#ffffff",
-    fontSize: 22,
-    fontWeight: "800",
+    color: "#f87171",
+    fontSize: 24,
+    fontWeight: "900",
   },
   priceLabel: {
     color: "rgba(255,255,255,0.6)",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
   },
   addButton: {
-    borderRadius: 10,
+    borderRadius: 12,
     overflow: "hidden",
   },
   addButtonGradient: {
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   addButtonText: {
     color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 14,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
+  
+  // Botão Flutuante do Carrinho
   cartButton: {
     position: "absolute",
-    right: 16,
-    bottom: 16,
-    borderRadius: 14,
+    right: 20,
+    bottom: 30,
+    borderRadius: 16,
     overflow: "hidden",
-    elevation: 8,
-    shadowColor: "#6366f1",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    elevation: 10,
+    shadowColor: "#ef4444",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
   },
   cartButtonGradient: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    gap: 7,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    gap: 8,
   },
   cartButtonIcon: {
-    fontSize: 18,
+    fontSize: 20,
   },
   cartButtonText: {
     color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   buttonPressed: {
     opacity: 0.85,
+    transform: [{ scale: 0.98 }]
   },
 })

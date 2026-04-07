@@ -1,11 +1,12 @@
 "use client"
 
-import { LinearGradient } from "expo-linear-gradient"
-import { onAuthStateChanged, type User } from "firebase/auth"
+import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import { onAuthStateChanged, type User } from "firebase/auth";
 import { get, ref } from "firebase/database"; // Realtime DB
-import { useEffect, useState } from "react"
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native"
-import { auth, database } from "../services/connectionFirebase"
+import { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { auth, database } from "../services/connectionFirebase";
 
 type ReceiptItem = { id: string; nome: string; precoXP: number; quantity: number }
 type Receipt = {
@@ -20,6 +21,7 @@ export default function Receipts() {
   const [receipts, setReceipts] = useState<Receipt[]>([])
   const [loading, setLoading] = useState(true)
   const [uid, setUid] = useState<string | null>(null)
+  const navigation = useNavigation<any>()
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user: User | null) => {
@@ -41,18 +43,15 @@ export default function Receipts() {
     setLoading(true)
     try {
       const receiptsRef = ref(database, `users/${uid}/comprovantes`)
-      // Realtime DB retorna um objeto onde as chaves são os IDs
       const snapshot = await get(receiptsRef)
 
       if (snapshot.exists()) {
         const data = snapshot.val()
-        // Converter objeto em array
         const list: Receipt[] = Object.keys(data).map((key) => ({
           id: key,
           ...data[key],
         }))
 
-        // Ordenar decrescente pela data (mais recente primeiro)
         list.sort((a, b) => {
             const dateA = new Date(a.createdAt || 0).getTime();
             const dateB = new Date(b.createdAt || 0).getTime();
@@ -82,15 +81,27 @@ export default function Receipts() {
   if (loading)
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color="#ef4444" />
       </View>
     )
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>🧾 Comprovantes</Text>
-        <Text style={styles.subtitle}>Histórico de compras</Text>
+      
+      {/* CABEÇALHO COM SPACER */}
+      <View style={styles.headerContainer}>
+        <Pressable 
+          style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.7 }]} 
+          onPress={() => navigation.navigate("Dashboard")}
+        >
+          <Text style={styles.backButtonText}>← Voltar</Text>
+        </Pressable>
+        
+        <View style={styles.titleWrapper}>
+          <Text style={styles.headerTitle}>🧾 Recibos</Text>
+        </View>
+        
+        <View style={styles.spacer} />
       </View>
 
       <FlatList
@@ -99,7 +110,7 @@ export default function Receipts() {
         renderItem={({ item }) => (
           <View style={styles.receiptCard}>
             <LinearGradient
-              colors={["#1e1b4b", "#312e81"]}
+              colors={["#4a0404", "#991b1b"]} // Gradiente Bordô/Vermelho
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.dateHeader}
@@ -125,7 +136,7 @@ export default function Receipts() {
               <View style={styles.totalRow}>
                 <Text style={styles.totalLabel}>Total Gasto</Text>
                 <LinearGradient
-                  colors={["#6366f1", "#8b5cf6"]}
+                  colors={["#7f1d1d", "#ef4444"]} // Gradiente Rubi Vivo
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.totalBadge}
@@ -141,10 +152,11 @@ export default function Receipts() {
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>📭</Text>
             <Text style={styles.emptyText}>Nenhum comprovante encontrado</Text>
-            <Text style={styles.emptySubtext}>Suas compras aparecerão aqui</Text>
+            <Text style={styles.emptySubtext}>As tuas compras aparecerão aqui</Text>
           </View>
         }
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   )
@@ -155,7 +167,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#0f0f14",
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
   },
   center: {
     flex: 1,
@@ -163,23 +175,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#0f0f14",
   },
-  header: {
-    marginBottom: 20,
+  
+  // Header Spacer Layout
+  headerContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: 24,
+    width: '100%',
   },
-  title: {
-    color: "#ffffff",
-    fontSize: 26,
-    fontWeight: "800",
-    marginBottom: 3,
+  backButton: {
+    width: 85,
+    paddingVertical: 8,
+    alignItems: 'center',
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)"
   },
-  subtitle: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 13,
-  },
+  backButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  titleWrapper: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { color: "#ffffff", fontSize: 24, fontWeight: "800" },
+  spacer: { width: 85 },
+
   receiptCard: {
     backgroundColor: "#1a1a1f",
-    borderRadius: 14,
-    marginBottom: 14,
+    borderRadius: 16,
+    marginBottom: 16,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
@@ -187,97 +208,26 @@ const styles = StyleSheet.create({
   dateHeader: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
-    gap: 8,
-  },
-  dateIcon: {
-    fontSize: 18,
-  },
-  dateText: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  itemsContainer: {
-    padding: 14,
+    padding: 16,
     gap: 10,
   },
-  itemRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  itemLeft: {
-    flex: 1,
-  },
-  itemName: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 3,
-  },
-  itemQuantity: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 12,
-  },
-  itemPrice: {
-    color: "#a5b4fc",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  totalSection: {
-    paddingHorizontal: 14,
-    paddingBottom: 14,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    marginBottom: 10,
-  },
-  totalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  totalLabel: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  totalBadge: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 9,
-    gap: 5,
-  },
-  totalValue: {
-    color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "800",
-  },
-  totalXP: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  emptyContainer: {
-    alignItems: "center",
-    paddingVertical: 60,
-  },
-  emptyIcon: {
-    fontSize: 54,
-    marginBottom: 14,
-  },
-  emptyText: {
-    color: "#ffffff",
-    fontSize: 17,
-    fontWeight: "700",
-    marginBottom: 6,
-  },
-  emptySubtext: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 13,
-  },
+  dateIcon: { fontSize: 18 },
+  dateText: { color: "#ffffff", fontSize: 15, fontWeight: "800" },
+  itemsContainer: { padding: 16, gap: 12 },
+  itemRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  itemLeft: { flex: 1 },
+  itemName: { color: "#ffffff", fontSize: 15, fontWeight: "700", marginBottom: 4 },
+  itemQuantity: { color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: "600" },
+  itemPrice: { color: "#f87171", fontSize: 15, fontWeight: "800" }, // Vermelho claro para o preço
+  totalSection: { paddingHorizontal: 16, paddingBottom: 16 },
+  divider: { height: 1, backgroundColor: "rgba(255,255,255,0.08)", marginBottom: 14 },
+  totalRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  totalLabel: { color: "rgba(255,255,255,0.6)", fontSize: 15, fontWeight: "700" },
+  totalBadge: { flexDirection: "row", alignItems: "baseline", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, gap: 5 },
+  totalValue: { color: "#ffffff", fontSize: 18, fontWeight: "900" },
+  totalXP: { color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: "700" },
+  emptyContainer: { alignItems: "center", paddingVertical: 80 },
+  emptyIcon: { fontSize: 60, marginBottom: 16 },
+  emptyText: { color: "#ffffff", fontSize: 18, fontWeight: "800", marginBottom: 8 },
+  emptySubtext: { color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: "600" },
 })
