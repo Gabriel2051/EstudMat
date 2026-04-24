@@ -1,15 +1,22 @@
 "use client"
 
+import PageLayout from "@/components/PageLayout"
+import useResponsive from "@/hooks/useResponsive"
+import { type Reward, useStore } from "@/screens/Store"
+import { showAlert } from "@/utils/platformAlert"
 import { useNavigation } from "@react-navigation/native"
 import { LinearGradient } from "expo-linear-gradient"
 import { useEffect, useState } from "react"
 import { ActivityIndicator, FlatList, Image, Platform, Pressable, StyleSheet, Text, View } from "react-native"
-import useResponsive from "../hooks/useResponsive"
-import { type Reward, useStore } from "../screens/Store"
-import { showAlert } from "../utils/platformAlert"
+
+const fallbackRewards: Reward[] = [
+  { id: "default-1", nome: "Caderno Premium", precoXP: 120, descricao: "Caderno exclusivo para anotações", imagem: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80" },
+  { id: "default-2", nome: "Curso de Matemática", precoXP: 220, descricao: "Acesso a um curso rápido de revisão", imagem: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=800&q=80" },
+  { id: "default-3", nome: "Caneta Neon", precoXP: 60, descricao: "Caneta para marcar seus estudos", imagem: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=800&q=80" },
+]
 
 export default function RewardsList() {
-  const [rewards, setRewards] = useState<Reward[]>([])
+  const [rewards, setRewards] = useState<Reward[]>(fallbackRewards)
   const [loading, setLoading] = useState(false)
   const navigation = useNavigation<any>()
   const { addToCart, xp } = useStore()
@@ -23,7 +30,7 @@ export default function RewardsList() {
     setLoading(true)
     try {
       const BIN_ID = "69243e2543b1c97be9c1d174"
-      const API_KEY = "$2a$10$TebTD95aYE0tZmZoHHV3EOVwvl.LKjutEgi2.IatoC0cLw7xEJqki"
+      const API_KEY = process.env.EXPO_PUBLIC_JSONBIN_API_KEY
       const url = `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`
       const res = await fetch(url, {
         headers: {
@@ -32,11 +39,18 @@ export default function RewardsList() {
       })
 
       const json = await res.json()
+      const remoteRewards: Reward[] = json.record?.recompensas || []
 
-      setRewards(json.record?.recompensas || [])
+      if (remoteRewards.length === 0) {
+        console.warn("Nenhuma recompensa retornada da API, usando valores padrão")
+        setRewards(fallbackRewards)
+      } else {
+        setRewards(remoteRewards)
+      }
     } catch (e) {
       console.warn("Erro ao buscar recompensas", e)
       showAlert("Erro", "Não foi possível carregar recompensas. Verifique a URL.")
+      setRewards(fallbackRewards)
     } finally {
       setLoading(false)
     }
@@ -51,10 +65,11 @@ export default function RewardsList() {
   }
 
   return (
-    <View style={styles.container}>
-      
-      {/* NOVO CABEÇALHO COM BOTÃO VOLTAR (Spacer Layout) */}
-      <View style={styles.headerContainer}>
+    <PageLayout title="Loja" subtitle="Resgate itens com o seu XP" activeScreen="RewardsList">
+      <View style={styles.container}>
+        
+        {/* NOVO CABEÇALHO COM BOTÃO VOLTAR (Spacer Layout) */}
+        <View style={styles.headerContainer}>
         <Pressable 
           style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.7 }]} 
           onPress={() => navigation.navigate("Dashboard")}
@@ -86,7 +101,8 @@ export default function RewardsList() {
       <FlatList
         data={rewards}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <View style={styles.rewardCard}>
@@ -150,7 +166,8 @@ export default function RewardsList() {
           <Text style={styles.cartButtonText}>Ver Carrinho</Text>
         </LinearGradient>
       </Pressable>
-    </View>
+      </View>
+    </PageLayout>
   )
 }
 

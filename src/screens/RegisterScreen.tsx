@@ -1,5 +1,7 @@
 "use client"
 
+import useResponsive from "@/hooks/useResponsive"
+import { auth } from "@/services/connectionFirebase"
 import { useNavigation } from "@react-navigation/native"
 import type { StackNavigationProp } from "@react-navigation/stack"
 import { LinearGradient } from "expo-linear-gradient"
@@ -16,9 +18,6 @@ import {
   TextInput,
   View,
 } from "react-native"
-import type { RootStackParamList } from "../../app/(tabs)/index"
-import { useResponsive } from "../hooks/useResponsive"
-import { auth } from "../services/connectionFirebase"
 
 type NavigationProps = StackNavigationProp<RootStackParamList>
 

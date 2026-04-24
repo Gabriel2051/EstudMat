@@ -1,10 +1,18 @@
 "use client"
 
-import { onAuthStateChanged, type User } from "firebase/auth";
-import { get, push, ref, set, update } from "firebase/database"; // Mudamos para Realtime DB
+import { auth, database } from "@/services/connectionFirebase";
+import { WebStorage } from "@/utils/webStorage";
+import { onAuthStateChanged } from "firebase/auth";
+import { get, push, ref, set, update } from "firebase/database";
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
-import { auth, database } from "../services/connectionFirebase"; // Usamos 'database' agora
-import { WebStorage } from "../utils/webStorage";
+
+// Definição dos temas para usar em todo o app
+export const THEMES = {
+  padrao: { id: 'padrao', primary: "#ef4444", bg: "#0f0f14", card: "#1a1a1f", accent: "#7f1d1d" },
+  esmeralda: { id: 'esmeralda', primary: "#10b981", bg: "#061a14", card: "#0a261e", accent: "#065f46" },
+  dracula: { id: 'dracula', primary: "#bd93f9", bg: "#282a36", card: "#44475a", accent: "#6272a4" },
+  oceano: { id: 'oceano', primary: "#3b82f6", bg: "#0f172a", card: "#1e293b", accent: "#1e40af" },
+};
 
 export type Reward = {
   id: string
@@ -12,6 +20,7 @@ export type Reward = {
   precoXP: number
   descricao?: string
   imagem?: string
+  tipo?: 'TEMA' | 'ITEM' | 'ICONE' // Adicionado para lógica de customização
 }
 
 type CartItem = Reward & { quantity: number }
@@ -26,9 +35,12 @@ type StoreContextType = {
   decrementQty: (rewardId: string) => void
   clearCart: () => void
   purchaseCart: (nomeCliente?: string) => Promise<{ success: boolean; message: string }>
-  addXP: (amount: number) => Promise<void>;
+  addXP: (amount: number) => Promise<void>
   inventory: Reward[]
   reloadXP: () => Promise<void>
+  // Novos campos para customização:
+  temaAtivo: keyof typeof THEMES
+  mudarTema: (temaId: keyof typeof THEMES) => Promise<void>
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
@@ -40,223 +52,113 @@ export function useStore() {
 }
 
 export const StoreProvider = ({ children }: { children: ReactNode }) => {
-  const [xp, setXp] = useState<number>(5000) // Valor inicial padrão visual
+  const [xp, setXp] = useState<number>(5000)
   const [cart, setCart] = useState<CartItem[]>([])
   const [inventory, setInventory] = useState<Reward[]>([])
+  const [temaAtivo, setTemaAtivo] = useState<keyof typeof THEMES>('padrao')
   const [uid, setUid] = useState<string | null>(null)
-  const [authLoading, setAuthLoading] = useState<boolean>(true)
 
-  // -------------------------------------------------------------------
-  // 🟦 Auth Listener
-  // -------------------------------------------------------------------
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user: User | null) => {
-      if (user) {
-        setUid(user.uid)
-      } else {
-        setUid(null)
-      }
-      setAuthLoading(false)
-    })
-    return unsub
-  }, [])
+    return onAuthStateChanged(auth, (user) => {
+      setUid(user ? user.uid : null);
+    });
+  }, []);
 
-  // -------------------------------------------------------------------
-  // 🔥 Carregar dados do Realtime Database
-  // -------------------------------------------------------------------
   const loadUserData = async () => {
-    if (!uid) return
+    if (!uid) return;
+    
+    const cachedCart = await WebStorage.getItem(`@user_cart_${uid}`);
+    if (cachedCart) setCart(JSON.parse(cachedCart));
 
-    try {
-      const userRef = ref(database, `users/${uid}`)
-      const snapshot = await get(userRef)
-
+    const userRef = ref(database, `users/${uid}`);
+    get(userRef).then((snapshot) => {
       if (snapshot.exists()) {
-        const data = snapshot.val()
-        // Se o XP não existir no banco, assumimos 5000
-        const serverXP = typeof data.xp === "number" ? data.xp : 5000
-        const serverInv = data.inventory || []
-
-        setXp(serverXP)
-        setInventory(serverInv)
-      } else {
-        // Usuário novo ou sem dados, define padrão
-        setXp(5000)
-        setInventory([])
+        const data = snapshot.val();
+        setXp(data.xp ?? 5000);
+        setInventory(data.inventory ?? []);
+        // Carrega o tema salvo no banco, se não existir usa o padrão
+        if (data.temaAtual && THEMES[data.temaAtual as keyof typeof THEMES]) {
+          setTemaAtivo(data.temaAtual as keyof typeof THEMES);
+        }
       }
-
-      // Carrinho local
-      const cachedCart = await WebStorage.getItem(`@user_cart_${uid}`)
-      if (cachedCart) {
-        setCart(JSON.parse(cachedCart))
-      }
-    } catch (e) {
-      console.error("Erro ao carregar dados do usuário:", e)
-    }
-  }
+    }).catch(err => console.log("Erro ao carregar dados:", err));
+  };
 
   const addXP = async (amount: number) => {
     if (!uid) return;
-    try {
-      const newXP = xp + amount;
-      const userRef = ref(database, `users/${uid}`);
-      await update(userRef, { xp: newXP });
-      setXp(newXP); // Atualiza o estado local
-    } catch (e) {
-      console.error("Erro ao adicionar XP:", e);
+    const newXP = xp + amount;
+    setXp(newXP);
+    update(ref(database, `users/${uid}`), { xp: newXP });
+  };
+
+  // Função para mudar o tema e salvar a preferência
+  const mudarTema = async (temaId: keyof typeof THEMES) => {
+    setTemaAtivo(temaId);
+    if (uid) {
+      update(ref(database, `users/${uid}`), { temaAtual: temaId });
     }
   };
 
-  // Não esqueça de adicionar 'addXP' ao value do Provider
-
   useEffect(() => {
-    if (!authLoading && uid) {
-      loadUserData()
-    } else if (!uid) {
-      setInventory([])
-      setXp(5000)
-      setCart([])
-    }
-  }, [uid, authLoading])
+    if (uid) loadUserData();
+  }, [uid]);
 
-  const reloadXP = async () => {
-    await loadUserData()
-  }
+  const reloadXP = async () => loadUserData();
 
-  // -------------------------------------------------------------------
-  // 💾 Cache do carrinho
-  // -------------------------------------------------------------------
-  useEffect(() => {
-    if (!uid) return
-    WebStorage.setItem(`@user_cart_${uid}`, JSON.stringify(cart))
-  }, [cart, uid])
-
-  // -------------------------------------------------------------------
-  // 🛒 Funções do carrinho
-  // -------------------------------------------------------------------
   const addToCart = (reward: Reward) => {
     setCart((prev) => {
-      const exists = prev.find((i) => i.id === reward.id)
-      if (exists) {
-        return prev.map((i) => (i.id === reward.id ? { ...i, quantity: i.quantity + 1 } : i))
+      const exists = prev.find((i) => i.id === reward.id);
+      if (exists) return prev.map((i) => (i.id === reward.id ? { ...i, quantity: i.quantity + 1 } : i));
+      return [...prev, { ...reward, quantity: 1 }];
+    });
+  };
+
+  const removeFromCart = (rewardId: string) => setCart(p => p.filter(i => i.id !== rewardId));
+  const incrementQty = (id: string) => setCart(p => p.map(i => i.id === id ? { ...i, quantity: i.quantity + 1 } : i));
+  const decrementQty = (id: string) => setCart(p => p.map(i => i.id === id ? { ...i, quantity: Math.max(0, i.quantity - 1) } : i).filter(i => i.quantity > 0));
+  const clearCart = () => setCart([]);
+
+  const purchaseCart = async (nomeCliente?: string) => {
+    if (!uid || cart.length === 0) return { success: false, message: "Erro" };
+    
+    const totalCost = cart.reduce((s, it) => s + it.precoXP * it.quantity, 0);
+    if (totalCost > xp) return { success: false, message: "XP insuficiente" };
+
+    const newItems: Reward[] = [];
+    cart.forEach(c => { 
+      for(let i=0; i<c.quantity; i++) {
+        const { quantity, ...itemSemQty } = c;
+        newItems.push(itemSemQty as Reward);
       }
-      return [...prev, { ...reward, quantity: 1 }]
-    })
+    });
+    
+    const updatedXP = xp - totalCost;
+    const updatedInventory = [...inventory, ...newItems];
+
+    setXp(updatedXP);
+    setInventory(updatedInventory);
+    clearCart();
+
+    const userRef = ref(database, `users/${uid}`);
+    const receiptRef = push(ref(database, `users/${uid}/comprovantes`));
+    
+    update(userRef, { xp: updatedXP, inventory: updatedInventory });
+    set(receiptRef, { 
+      items: cart, 
+      totalXP: totalCost, 
+      nomeCliente: nomeCliente || "Estudante",
+      createdAt: new Date().toISOString() 
+    });
+
+    return { success: true, message: "Compra realizada!" };
   }
 
-  const removeFromCart = (rewardId: string) => {
-    setCart((prev) => prev.filter((i) => i.id !== rewardId))
-  }
-
-  const incrementQty = (rewardId: string) => {
-    setCart((prev) => prev.map((i) => (i.id === rewardId ? { ...i, quantity: i.quantity + 1 } : i)))
-  }
-
-  const decrementQty = (rewardId: string) => {
-    setCart((prev) =>
-      prev.map((i) => {
-        if (i.id === rewardId) {
-          const newQty = i.quantity - 1
-          if (newQty <= 0) return null
-          return { ...i, quantity: newQty }
-        }
-        return i
-      }).filter((i): i is CartItem => i !== null),
-    )
-  }
-
-  const clearCart = () => setCart([])
-
-  // -------------------------------------------------------------------
-  // 🟩 Finalizar compra (REALTIME DB)
-  // -------------------------------------------------------------------
-  const purchaseCart = async (nomeCliente?: string): Promise<{ success: boolean; message: string }> => {
-    console.log("[Store] Iniciando compra...")
-    if (!uid) return { success: false, message: "Usuário não autenticado." }
-    if (cart.length === 0) return { success: false, message: "Carrinho vazio" }
-
-    const totalCost = cart.reduce((s, it) => s + it.precoXP * it.quantity, 0)
-    const totalItemsCount = cart.reduce((s, it) => s + it.quantity, 0)
-
-    try {
-      const userRef = ref(database, `users/${uid}`)
-      const snapshot = await get(userRef)
-
-      let currentXP = 5000
-      let currentInventory: Reward[] = []
-
-      if (snapshot.exists()) {
-        const data = snapshot.val()
-        currentXP = typeof data.xp === "number" ? data.xp : 5000
-        currentInventory = data.inventory || []
-      }
-
-      if (totalCost > currentXP) {
-        return { success: false, message: `XP insuficiente. Você tem ${currentXP} XP.` }
-      }
-
-      // 1. Preparar itens para adicionar ao inventário
-      const newItems: Reward[] = []
-      cart.forEach((cartItem) => {
-        for (let i = 0; i < cartItem.quantity; i++) {
-          const { quantity, ...reward } = cartItem
-          newItems.push(reward)
-        }
-      })
-      const updatedInventory = [...currentInventory, ...newItems]
-      const updatedXP = currentXP - totalCost
-
-      // 2. Criar comprovante no Realtime DB (users/UID/comprovantes)
-      const receiptsRef = ref(database, `users/${uid}/comprovantes`)
-      const newReceiptRef = push(receiptsRef)
-
-      const receiptData = {
-        nomeCliente: nomeCliente ?? "Usuário",
-        items: cart,
-        totalXP: totalCost,
-        totalItens: totalItemsCount,
-        createdAt: new Date().toISOString(), // Realtime DB prefere string ISO ou timestamp
-      }
-
-      // 3. Atualizar tudo atomicamente (ou em sequência)
-      await set(newReceiptRef, receiptData)
-      await update(userRef, {
-        xp: updatedXP,
-        inventory: updatedInventory
-      })
-
-      // Sucesso
-      setXp(updatedXP)
-      setInventory(updatedInventory)
-      clearCart()
-
-      return {
-        success: true,
-        message: `Compra realizada! Saldo restante: ${updatedXP} XP`,
-      }
-
-    } catch (e: any) {
-      console.error("[Store] Erro na compra:", e)
-      return { success: false, message: e.message || "Erro ao processar compra." }
-    }
-  }
   return (
-    <StoreContext.Provider
-      value={{
-        xp,
-        setXp,
-        cart,
-        addToCart,
-        removeFromCart,
-        incrementQty,
-        decrementQty,
-        clearCart,
-        purchaseCart,
-        addXP,
-        inventory,
-        reloadXP,
-      }}
-    >
+    <StoreContext.Provider value={{ 
+      xp, setXp, cart, addToCart, removeFromCart, incrementQty, 
+      decrementQty, clearCart, purchaseCart, addXP, inventory, 
+      reloadXP, temaAtivo, mudarTema 
+    }}>
       {children}
     </StoreContext.Provider>
   )

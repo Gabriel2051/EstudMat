@@ -1,3 +1,4 @@
+import PageLayout from "@/components/PageLayout";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import React from 'react';
@@ -14,25 +15,26 @@ export default function SelecaoExercicios() {
   ];
 
   return (
-    <View style={styles.container}>
-      
-      {/* CABEÇALHO COM SPACER */}
-      <View style={styles.headerContainer}>
+    <PageLayout title="Exercícios" subtitle="Escolha sua fase de estudo" activeScreen="SelecaoExercicios">
+      <View style={styles.container}>
         
-        <Pressable 
-          style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.7 }]} 
-          onPress={() => navigation.navigate("Dashboard")}
-        >
-          <Text style={styles.backButtonText}>← Voltar</Text>
-        </Pressable>
-        
-        <View style={styles.titleWrapper}>
-          <Text style={styles.headerTitle}>Jornada</Text>
-        </View>
-        
-        <View style={styles.spacer} />
+        {/* CABEÇALHO COM SPACER */}
+        <View style={styles.headerContainer}>
+          
+          <Pressable 
+            style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.7 }]} 
+            onPress={() => navigation.navigate("Dashboard")}
+          >
+            <Text style={styles.backButtonText}>← Voltar</Text>
+          </Pressable>
+          
+          <View style={styles.titleWrapper}>
+            <Text style={styles.headerTitle}>Jornada</Text>
+          </View>
+          
+          <View style={styles.spacer} />
 
-      </View>
+        </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {fases.map((fase) => (
@@ -53,6 +55,7 @@ export default function SelecaoExercicios() {
         ))}
       </ScrollView>
     </View>
+  </PageLayout>
   );
 }
 

@@ -3,7 +3,10 @@
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+
+import { XP_VALUES } from '@/constants/gameConfig';
+import { showAlert } from '@/utils/platformAlert';
 import { useStore } from './Store';
 
 export default function TreinarScreen() {
@@ -14,13 +17,27 @@ export default function TreinarScreen() {
   const [xpAcumulado, setXpAcumulado] = useState(0);
   const [pergunta, setPergunta] = useState({ a: 0, b: 0, op: '', res: 0 });
   const [resposta, setResposta] = useState('');
-  
-  // NOVO ESTADO: Controla se a fase acabou
   const [finalizado, setFinalizado] = useState(false);
 
   useEffect(() => {
     gerarNovaPergunta();
   }, []);
+
+  // --- NOVA FUNÇÃO PARA SAIR ---
+  const handleSair = () => {
+    showAlert(
+      "Parar exercício?", 
+      "Se você sair agora, perderá o progresso desta lição (mas o XP já ganho será mantido).",
+      [
+        { text: "Continuar Treinando", style: "cancel" },
+        { 
+          text: "Sair", 
+          style: "destructive", 
+          onPress: () => navigation.navigate("SelecaoExercicios") 
+        }
+      ]
+    );
+  };
 
   const gerarNovaPergunta = () => {
     const ops = ['+', '-', '*'];
@@ -41,99 +58,79 @@ export default function TreinarScreen() {
     const resDigitada = parseInt(resposta);
 
     if (isNaN(resDigitada)) {
-      Alert.alert("Aviso", "Por favor, insira um número válido.");
+      showAlert("Atenção", "Por favor, digite um número.");
       return;
     }
 
     if (resDigitada === pergunta.res) {
-      const pontosPorQuestao = 50;
-      
-      // Removemos o 'await' para que o Firebase não congele a tela enquanto salva
-      addXP(pontosPorQuestao); 
-      
-      const novoTotalSessao = xpAcumulado + pontosPorQuestao;
-      setXpAcumulado(novoTotalSessao);
+      const pontos = XP_VALUES.phase1;
+      addXP(pontos); 
+      setXpAcumulado(prev => prev + pontos);
 
-      // VERIFICAÇÃO DEFINITIVA
       if (contador >= 10) {
-        setFinalizado(true); // Muda a tela inteira para a "Tela de Vitória"
-        return; 
+        setFinalizado(true);
+      } else {
+        setContador(prev => prev + 1);
+        gerarNovaPergunta();
       }
-
-      setContador(prev => prev + 1);
-      gerarNovaPergunta();
     } else {
-      Alert.alert("Ops!", "Resposta incorreta. Tente novamente!");
+      showAlert("Ops!", "Resposta errada. Tente novamente!");
     }
   };
 
-  // ------------------------------------------------------------------
-  // TELA DE VITÓRIA (Renderizada apenas quando finalizado === true)
-  // ------------------------------------------------------------------
   if (finalizado) {
     return (
       <View style={styles.containerFinal}>
         <Text style={styles.iconeFinal}>🏆</Text>
         <Text style={styles.tituloFinal}>Fase Concluída!</Text>
-        <Text style={styles.textoFinal}>O teu desempenho foi excelente.</Text>
-        
-        <View style={styles.xpCardFinal}>
-          <Text style={styles.xpCardLabel}>XP GANHO NESTA SESSÃO</Text>
+        <Text style={styles.xpCardFinal}>
+          <Text style={styles.xpCardLabel}>XP TOTAL GANHO</Text>
+          {"\n"}
           <Text style={styles.xpCardValue}>+{xpAcumulado} XP</Text>
-        </View>
-
-        <Pressable 
-          style={({ pressed }) => [styles.botao, pressed && styles.botaoPressed, { marginTop: 40 }]} 
-          onPress={() => navigation.navigate("SelecaoExercicios")}
-        >
+        </Text>
+        <Pressable style={styles.botaoFinal} onPress={() => navigation.navigate("SelecaoExercicios")}>
           <LinearGradient colors={["#7f1d1d", "#ef4444"]} style={styles.gradient}>
-            <Text style={styles.botaoText}>CONTINUAR</Text>
+            <Text style={styles.botaoText}>VOLTAR À JORNADA</Text>
           </LinearGradient>
         </Pressable>
       </View>
     );
   }
 
-  // ------------------------------------------------------------------
-  // TELA DE EXERCÍCIOS NORMAL
-  // ------------------------------------------------------------------
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.progresso}>QUESTÃO {contador} DE 10</Text>
-          <View style={styles.xpBadge}>
-            <Text style={styles.xpBadgeText}>+{xpAcumulado} XP</Text>
-          </View>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      {/* HEADER DE SAÍDA */}
+      <View style={styles.topBar}>
+        <Pressable onPress={handleSair} style={styles.closeButton}>
+          <Text style={styles.closeButtonText}>✕</Text>
+        </Pressable>
+        <View style={styles.progressBarBackground}>
+           <View style={[styles.progressBarFill, { width: `${(contador / 10) * 100}%` }]} />
         </View>
+        <View style={styles.xpBadge}>
+          <Text style={styles.xpBadgeText}>{xpAcumulado} XP</Text>
+        </View>
+      </View>
 
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
-          <Text style={styles.titulo}>Fase 1: Operações Básicas</Text>
-          
+          <Text style={styles.titulo}>Operações Básicas</Text>
           <View style={styles.perguntaContainer}>
             <Text style={styles.perguntaTexto}>
-              {pergunta.a} {pergunta.op} {pergunta.b} = ?
+              {pergunta.a} {pergunta.op === '*' ? '×' : pergunta.op} {pergunta.b} = ?
             </Text>
           </View>
-
           <TextInput
             style={styles.input}
             keyboardType="numeric"
             value={resposta}
             onChangeText={setResposta}
-            placeholder="A tua resposta"
-            placeholderTextColor="rgba(255,255,255,0.3)"
-            autoFocus={true}
+            placeholder="?"
+            placeholderTextColor="rgba(255,255,255,0.2)"
+            autoFocus
             onSubmitEditing={validarResposta}
           />
-
-          <Pressable 
-            style={({ pressed }) => [styles.botao, pressed && styles.botaoPressed]} 
-            onPress={validarResposta}
-          >
+          <Pressable style={styles.botao} onPress={validarResposta}>
             <LinearGradient colors={["#7f1d1d", "#ef4444"]} style={styles.gradient}>
               <Text style={styles.botaoText}>CONFIRMAR</Text>
             </LinearGradient>
@@ -145,33 +142,45 @@ export default function TreinarScreen() {
 }
 
 const styles = StyleSheet.create({
-  // Estilos da Tela Normal
-  container: { 
+  container: { flex: 1, backgroundColor: "#0f0f14" },
+  topBar: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 20, 
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 10,
+    gap: 15
+  },
+  closeButton: { padding: 5 },
+  closeButtonText: { color: "rgba(255,255,255,0.4)", fontSize: 24, fontWeight: "600" },
+  progressBarBackground: { 
     flex: 1, 
-    backgroundColor: "#0f0f14",
-    paddingTop: Platform.OS === 'ios' ? 50 : 40,
+    height: 12, 
+    backgroundColor: "rgba(255,255,255,0.1)", 
+    borderRadius: 6,
+    overflow: 'hidden'
+  },
+  progressBarFill: { 
+    height: '100%', 
+    backgroundColor: "#ef4444", 
+    borderRadius: 6 
   },
   scroll: { flexGrow: 1, justifyContent: "center", padding: 20 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 },
-  progresso: { color: "#ef4444", fontSize: 16, fontWeight: "900", letterSpacing: 1 },
-  xpBadge: { backgroundColor: "rgba(239,68,68,0.15)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: "rgba(239,68,68,0.3)" },
-  xpBadgeText: { color: "#f87171", fontWeight: "800" },
-  card: { backgroundColor: "#1a1a1f", padding: 30, borderRadius: 24, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
-  titulo: { color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: "700", marginBottom: 20, textTransform: "uppercase", letterSpacing: 1 },
+  xpBadge: { backgroundColor: "rgba(239,68,68,0.15)", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+  xpBadgeText: { color: "#f87171", fontWeight: "800", fontSize: 12 },
+  card: { backgroundColor: "#1a1a1f", padding: 30, borderRadius: 24, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  titulo: { color: "rgba(255,255,255,0.4)", marginBottom: 20, fontWeight: "700", textTransform: 'uppercase', letterSpacing: 1 },
   perguntaContainer: { marginBottom: 30 },
   perguntaTexto: { color: "#fff", fontSize: 56, fontWeight: "800" },
-  input: { backgroundColor: "rgba(255,255,255,0.05)", color: "#fff", width: "100%", padding: 20, borderRadius: 16, textAlign: "center", fontSize: 24, marginBottom: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  input: { backgroundColor: "rgba(255,255,255,0.05)", color: "#fff", width: "100%", padding: 20, borderRadius: 16, textAlign: "center", fontSize: 32, marginBottom: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
   botao: { width: "100%", borderRadius: 16, overflow: "hidden" },
-  botaoPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   gradient: { padding: 18, alignItems: "center" },
-  botaoText: { color: "#fff", fontWeight: "800", fontSize: 16, letterSpacing: 1 },
-
-  // Estilos da Tela Final (Vitória)
-  containerFinal: { flex: 1, backgroundColor: "#0f0f14", justifyContent: 'center', alignItems: 'center', padding: 20 },
+  botaoText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
+  containerFinal: { flex: 1, backgroundColor: "#0f0f14", justifyContent: 'center', alignItems: 'center', padding: 30 },
   iconeFinal: { fontSize: 80, marginBottom: 20 },
-  tituloFinal: { color: "#fff", fontSize: 32, fontWeight: "800", marginBottom: 10 },
-  textoFinal: { color: "rgba(255,255,255,0.6)", fontSize: 16, marginBottom: 40 },
-  xpCardFinal: { backgroundColor: "rgba(239,68,68,0.1)", padding: 30, borderRadius: 24, alignItems: 'center', borderWidth: 1, borderColor: "rgba(239,68,68,0.3)", width: '100%' },
-  xpCardLabel: { color: "#f87171", fontSize: 14, fontWeight: "800", letterSpacing: 1, marginBottom: 10 },
-  xpCardValue: { color: "#fff", fontSize: 48, fontWeight: "900" }
+  tituloFinal: { color: "#fff", fontSize: 28, fontWeight: "800", marginBottom: 20 },
+  xpCardFinal: { backgroundColor: "rgba(239,68,68,0.1)", padding: 30, borderRadius: 24, width: '100%', alignItems: 'center', textAlign: 'center' },
+  xpCardLabel: { color: "#f87171", fontSize: 12, fontWeight: "800" },
+  xpCardValue: { color: "#fff", fontSize: 42, fontWeight: "900" },
+  botaoFinal: { width: "100%", borderRadius: 16, overflow: "hidden", marginTop: 30 }
 });

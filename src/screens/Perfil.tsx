@@ -1,16 +1,15 @@
 "use client"
 
 // screens/Perfil.tsx
+import { auth, database } from "@/services/connectionFirebase"
+import { showAlert } from "@/utils/platformAlert"
+import { promiseWithTimeout } from "@/utils/promiseWithTimeout"
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native"
 import type { StackNavigationProp } from "@react-navigation/stack"
 import { LinearGradient } from "expo-linear-gradient"
 import { get, ref, set, update } from "firebase/database"
 import { useEffect, useState } from "react"
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
-import type { RootStackParamList } from "../../app/(tabs)/index"
-import { auth, database } from "../services/connectionFirebase"
-import { showAlert } from "../utils/platformAlert"
-import { promiseWithTimeout } from "../utils/promiseWithTimeout"
 
 type PerfilRouteProp = RouteProp<RootStackParamList, "Perfil">
 type PerfilNavigationProp = StackNavigationProp<RootStackParamList, "Perfil">

@@ -1,10 +1,10 @@
 "use client"
 
-import { useNavigation } from "@react-navigation/native"
-import type { StackNavigationProp } from "@react-navigation/stack"
-import { LinearGradient } from "expo-linear-gradient"
-import { signInWithEmailAndPassword } from "firebase/auth"
-import { useRef, useState } from "react"
+import { useNavigation } from "@react-navigation/native";
+import type { StackNavigationProp } from "@react-navigation/stack";
+import { LinearGradient } from "expo-linear-gradient";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import React, { useRef, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -15,24 +15,28 @@ import {
   Text,
   TextInput,
   View,
-} from "react-native"
-import type { RootStackParamList } from "../../app/(tabs)/index"
-import { useResponsive } from "../hooks/useResponsive"
-import { auth } from "../services/connectionFirebase"
+} from "react-native";
 
-type NavigationProps = StackNavigationProp<RootStackParamList>
+// Importações via Alias @/
+import useResponsive from "@/hooks/useResponsive"; // ✅ Corrigido: sem as chaves { }
+import type { RootStackParamList } from "@/navigation/index";
+import { auth } from "@/services/connectionFirebase";
+
+type NavigationProps = StackNavigationProp<RootStackParamList>;
 
 export default function LoginScreen() {
-  const navigation = useNavigation<NavigationProps>()
-  const { width } = useResponsive()
+  const navigation = useNavigation<NavigationProps>();
+  const { width } = useResponsive(); // ✅ Agora a função será reconhecida corretamente
 
-  const [email, setEmail] = useState("")
-  const [senha, setSenha] = useState("")
-  const [message, setMessage] = useState("")
-  const [isError, setIsError] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const senhaInputRef = useRef<TextInput>(null)
+  const senhaInputRef = useRef<TextInput>(null);
+
+  // ... resto da sua lógica de handleLogin e o componente return
 
   const isValidEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

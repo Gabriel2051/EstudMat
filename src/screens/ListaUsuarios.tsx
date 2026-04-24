@@ -1,15 +1,15 @@
 "use client"
 
 // screens/ListaUsuarios.tsx
+import { auth, database } from "@/services/connectionFirebase"
+import { showAlert } from "@/utils/platformAlert"
+import { promiseWithTimeout } from "@/utils/promiseWithTimeout"
 import { useIsFocused, useNavigation } from "@react-navigation/native"
 import type { StackNavigationProp } from "@react-navigation/stack"
 import { LinearGradient } from "expo-linear-gradient"
 import { get, ref } from "firebase/database"
 import { useCallback, useEffect, useState } from "react"
 import { ActivityIndicator, Dimensions, Pressable, StyleSheet, Text, View } from "react-native"
-import type { RootStackParamList } from "../../app/(tabs)/index"
-import { auth, database } from "../services/connectionFirebase"
-import { showAlert } from "../utils/platformAlert"
 
 const { width } = Dimensions.get("window")
 
@@ -46,7 +46,7 @@ export default function ListaUsuarios() {
     setLoading(true)
 
     try {
-      const snap = await get(ref(database, `users/${uid}`))
+      const snap = await promiseWithTimeout(get(ref(database, `users/${uid}`)), 7000)
       if (snap.exists()) {
         const data = snap.val()
         console.log("[ListaUsuarios] dados do usuário conectado:", data)

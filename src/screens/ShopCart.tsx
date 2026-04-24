@@ -1,11 +1,12 @@
 "use client"
 
+import PageLayout from "@/components/PageLayout"
+import { useStore } from "@/screens/Store"
+import { showAlert } from "@/utils/platformAlert"
 import { useNavigation } from "@react-navigation/native"
 import { LinearGradient } from "expo-linear-gradient"
 import { useState } from "react"
 import { FlatList, Image, Platform, Pressable, StyleSheet, Text, View } from "react-native"
-import { useStore } from "../screens/Store"
-import { showAlert } from "../utils/platformAlert"
 
 export default function ShopCart() {
   const navigation = useNavigation<any>()
@@ -44,10 +45,11 @@ export default function ShopCart() {
   }
 
   return (
-    <View style={styles.container}>
-      
-      {/* NOVO CABEÇALHO COM BOTÃO VOLTAR (Spacer Layout) */}
-      <View style={styles.headerContainer}>
+    <PageLayout title="Carrinho" subtitle="Revê os itens antes de finalizar a compra" activeScreen="ShopCart">
+      <View style={styles.container}>
+        
+        {/* NOVO CABEÇALHO COM BOTÃO VOLTAR (Spacer Layout) */}
+        <View style={styles.headerContainer}>
         <Pressable 
           style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.7 }]} 
           onPress={() => navigation.navigate("Dashboard")}
@@ -89,7 +91,8 @@ export default function ShopCart() {
       <FlatList
         data={cart}
         keyExtractor={(i) => i.id}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>🛍️</Text>
@@ -190,7 +193,8 @@ export default function ShopCart() {
           </View>
         </View>
       )}
-    </View>
+      </View>
+    </PageLayout>
   )
 }
 

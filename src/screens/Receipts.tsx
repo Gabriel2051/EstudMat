@@ -1,12 +1,14 @@
 "use client"
 
+import PageLayout from "@/components/PageLayout";
+import { auth, database } from "@/services/connectionFirebase";
+import { promiseWithTimeout } from "@/utils/promiseWithTimeout";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { get, ref } from "firebase/database"; // Realtime DB
 import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { auth, database } from "../services/connectionFirebase";
 
 type ReceiptItem = { id: string; nome: string; precoXP: number; quantity: number }
 type Receipt = {
@@ -43,7 +45,7 @@ export default function Receipts() {
     setLoading(true)
     try {
       const receiptsRef = ref(database, `users/${uid}/comprovantes`)
-      const snapshot = await get(receiptsRef)
+      const snapshot = await promiseWithTimeout(get(receiptsRef), 7000)
 
       if (snapshot.exists()) {
         const data = snapshot.val()
@@ -86,10 +88,11 @@ export default function Receipts() {
     )
 
   return (
-    <View style={styles.container}>
-      
-      {/* CABEÇALHO COM SPACER */}
-      <View style={styles.headerContainer}>
+    <PageLayout title="Recibos" subtitle="Revisa as compras já realizadas" activeScreen="Receipts">
+      <View style={styles.container}>
+        
+        {/* CABEÇALHO COM SPACER */}
+        <View style={styles.headerContainer}>
         <Pressable 
           style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.7 }]} 
           onPress={() => navigation.navigate("Dashboard")}
@@ -158,7 +161,8 @@ export default function Receipts() {
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+      </View>
+    </PageLayout>
   )
 }
 
