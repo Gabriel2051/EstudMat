@@ -10,13 +10,15 @@ import { showAlert } from '@/utils/platformAlert';
 import { useStore } from './Store';
 
 export default function TreinarFase2() {
-  const { addXP } = useStore();
+  const { addXP, addXPWithMultiplier, updateChallengeProgress, completeChallengeIfEligible, calculateXPMultiplier, checkAndUnlockAchievements } = useStore();
   const navigation = useNavigation<any>();
   
   const [mostrarTeoria, setMostrarTeoria] = useState(true);
   const [finalizado, setFinalizado] = useState(false);
   const [contador, setContador] = useState(1);
+  const [acertos, setAcertos] = useState(0);
   const [xpAcumulado, setXpAcumulado] = useState(0);
+  const [xpMultiplier, setXpMultiplier] = useState(1.0);
   const [pergunta, setPergunta] = useState({ text: '', res: 0 });
   const [resposta, setResposta] = useState('');
 
@@ -56,11 +58,36 @@ export default function TreinarFase2() {
     }
 
     if (resDigitada === pergunta.res) {
+      const novoAcerto = acertos + 1;
+      setAcertos(novoAcerto);
+      
       const pontos = XP_VALUES.phase2;
-      addXP(pontos); 
+      addXP(pontos);
       setXpAcumulado(prev => prev + pontos);
+      
+      // Atualizar progresso do desafio associado à Fase 2
+      updateChallengeProgress("3", 2);
 
-      if (contador >= 10) setFinalizado(true);
+      if (contador >= 10) {
+        // Calcular multiplicador final baseado em % de acertos
+        const multiplier = calculateXPMultiplier(novoAcerto, 10);
+        setXpMultiplier(multiplier);
+        
+        // Aplicar multiplicador ao XP acumulado (adiciona o bônus)
+        if (multiplier > 1.0) {
+          const bonusXP = Math.round(xpAcumulado * (multiplier - 1.0));
+          addXP(bonusXP);
+          setXpAcumulado(prev => prev + bonusXP);
+        }
+        
+        // Marcar desafio como completo se elegível
+        completeChallengeIfEligible("3");
+        
+        // Verificar achievements
+        checkAndUnlockAchievements(novoAcerto, 10, 2);
+        
+        setFinalizado(true);
+      }
       else {
         setContador(prev => prev + 1);
         gerarNovaPergunta();
@@ -106,13 +133,23 @@ export default function TreinarFase2() {
   }
 
   if (finalizado) {
+    const xpBonusMultiplier = Math.round(XP_VALUES.phase2 * 10 * (xpMultiplier - 1));
     return (
       <View style={styles.containerFinal}>
         <Text style={styles.iconeFinal}>🏆</Text>
         <Text style={styles.tituloFinal}>Fase Concluída!</Text>
         <View style={styles.xpCardFinal}>
-          <Text style={styles.xpCardLabel}>XP GANHO</Text>
+          <Text style={styles.xpCardLabel}>ACERTOS</Text>
+          <Text style={styles.xpCardValue}>{acertos}/10</Text>
+          <Text style={[styles.xpCardLabel, { marginTop: 10 }]}>MULTIPLICADOR</Text>
+          <Text style={[styles.xpCardValue, { color: xpMultiplier >= 2 ? "#10b981" : "#f59e0b" }]}>
+            {xpMultiplier.toFixed(1)}x
+          </Text>
+          <Text style={[styles.xpCardLabel, { marginTop: 10 }]}>XP TOTAL</Text>
           <Text style={styles.xpCardValue}>+{xpAcumulado} XP</Text>
+          {xpBonusMultiplier > 0 && (
+            <Text style={styles.xpCardBonus}>+{xpBonusMultiplier} XP (bônus)</Text>
+          )}
         </View>
         <Pressable style={styles.botaoLargo} onPress={() => navigation.navigate("SelecaoExercicios")}>
           <LinearGradient colors={["#7f1d1d", "#ef4444"]} style={styles.gradient}><Text style={styles.botaoText}>CONTINUAR</Text></LinearGradient>

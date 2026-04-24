@@ -3,6 +3,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
 
 // Importações com Alias @/
+import AchievementsScreen from "@/screens/AchievementsScreen";
 import Agendamento from "@/screens/Agendamento";
 import DashboardScreen from "@/screens/DashboardScreen";
 import DesafiosScreen from "@/screens/DesafiosScreen";
@@ -31,6 +32,7 @@ export type RootStackParamList = {
   ShopCart: undefined;
   Receipts: undefined;
   Desafios: undefined;
+  Achievements: undefined;
   Treinar: undefined;
   SelecaoExercicios: undefined;
   TreinarFase2: undefined;
@@ -57,6 +59,7 @@ export default function AppNavigator() {
         <Stack.Screen name="ShopCart" component={ShopCart} />
         <Stack.Screen name="Receipts" component={Receipts} />
         <Stack.Screen name="Desafios" component={DesafiosScreen} />
+        <Stack.Screen name="Achievements" component={AchievementsScreen} />
         <Stack.Screen name="Treinar" component={TreinarScreen} />
         <Stack.Screen name="SelecaoExercicios" component={SelecaoExercicios} />
         <Stack.Screen name="TreinarFase2" component={TreinarFase2} />

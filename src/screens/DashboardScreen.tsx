@@ -80,25 +80,35 @@ export default function DashboardScreen() {
 
             {/* GRID DE BOTÕES (VISUAL ORIGINAL) */}
             <View style={styles.grid}>
-              <Pressable style={styles.cardLarge} onPress={() => navigation.navigate("SelecaoExercicios")}>
+              <Pressable style={styles.cardSmall} onPress={() => navigation.navigate("SelecaoExercicios")}>
                 <LinearGradient colors={[theme.accent, theme.primary]} style={styles.gradient}>
                   <Text style={styles.icon}>📚</Text>
-                  <Text style={styles.cardTitle}>Começar Jornada</Text>
-                  <Text style={styles.cardSub}>Praticar exercícios de hoje</Text>
+                  <Text style={styles.cardTitle}>Treinar</Text>
+                  <Text style={styles.cardSub}>Praticar exercícios</Text>
                 </LinearGradient>
-              </Pressable>
-
-              <Pressable style={styles.cardSmall} onPress={() => navigation.navigate("RewardsList")}>
-                <View style={styles.cardDark}>
-                  <Text style={styles.icon}>🎁</Text>
-                  <Text style={styles.cardTitle}>Loja</Text>
-                </View>
               </Pressable>
 
               <Pressable style={styles.cardSmall} onPress={() => navigation.navigate("Desafios")}>
                 <View style={styles.cardDark}>
                   <Text style={styles.icon}>🎯</Text>
                   <Text style={styles.cardTitle}>Desafios</Text>
+                  <Text style={styles.cardSub}>Missões especiais</Text>
+                </View>
+              </Pressable>
+
+              <Pressable style={styles.cardSmall} onPress={() => navigation.navigate("Achievements")}>
+                <View style={styles.cardDark}>
+                  <Text style={styles.icon}>🏆</Text>
+                  <Text style={styles.cardTitle}>Conquistas</Text>
+                  <Text style={styles.cardSub}>Suas vitórias</Text>
+                </View>
+              </Pressable>
+
+              <Pressable style={styles.cardSmall} onPress={() => navigation.navigate("RewardsList")}>
+                <View style={styles.cardDark}>
+                  <Text style={styles.icon}>🎁</Text>
+                  <Text style={styles.cardTitle}>Loja</Text>
+                  <Text style={styles.cardSub}>Recompensas</Text>
                 </View>
               </Pressable>
             </View>

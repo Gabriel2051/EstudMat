@@ -2,7 +2,7 @@
 
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import React, { useEffect } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import PageLayout from "@/components/PageLayout";
@@ -10,14 +10,12 @@ import { THEMES, useStore } from "./Store";
 
 export default function DesafiosScreen() {
     const navigation = useNavigation<any>();
-    const { xp, temaAtivo } = useStore();
+    const { xp, temaAtivo, challenges, loadChallenges } = useStore();
     const theme = THEMES[temaAtivo];
 
-    const challenges = [
-        { id: "1", title: "Resolva 5 contas", description: "Complete 5 exercícios básicos", xp: 50, progress: 3, total: 5, completed: false },
-        { id: "2", title: "Sequência diária", description: "Estude por 3 dias seguidos", xp: 100, progress: 3, total: 3, completed: true },
-        { id: "3", title: "Desafio relâmpago", description: "Acerte 10 questões seguidas", xp: 150, progress: 6, total: 10, completed: false },
-    ];
+    useEffect(() => {
+        loadChallenges();
+    }, []);
 
     return (
         <PageLayout title="Desafios" activeScreen="Desafios">
@@ -36,37 +34,53 @@ export default function DesafiosScreen() {
                     </View>
                 </View>
 
-                {challenges.map((challenge) => {
-                    const progressPercent = challenge.progress / challenge.total;
-                    return (
-                        <View key={challenge.id} style={[styles.card, { backgroundColor: theme.card }]}>
-                            <View style={styles.cardHeader}>
-                                <Text style={styles.cardTitle}>{challenge.title}</Text>
-                                <Text style={[styles.xpReward, { color: theme.primary }]}>+{challenge.xp} XP</Text>
-                            </View>
-                            <Text style={styles.description}>{challenge.description}</Text>
-                            
-                            <View style={styles.progressContainer}>
-                                <View style={styles.progressBar}>
-                                    <LinearGradient
-                                        colors={challenge.completed ? ["#10b981", "#059669"] : [theme.accent, theme.primary]}
-                                        style={[styles.progressFill, { width: `${progressPercent * 100}%` }]}
-                                    />
+                {challenges.length === 0 ? (
+                    <View style={styles.emptyState}>
+                        <Text style={styles.emptyText}>Nenhum desafio carregado</Text>
+                    </View>
+                ) : (
+                    challenges.map((challenge) => {
+                        const progressPercent = challenge.progress / challenge.total;
+                        return (
+                            <View key={challenge.id} style={[styles.card, { backgroundColor: theme.card }]}>
+                                <View style={styles.cardHeader}>
+                                    <Text style={styles.cardTitle}>{challenge.title}</Text>
+                                    <Text style={[styles.xpReward, { color: theme.primary }]}>+{challenge.xp} XP</Text>
                                 </View>
-                                <Text style={styles.progressText}>{challenge.progress}/{challenge.total}</Text>
-                            </View>
+                                <Text style={styles.description}>{challenge.description}</Text>
+                                
+                                <View style={styles.progressContainer}>
+                                    <View style={styles.progressBar}>
+                                        <LinearGradient
+                                            colors={challenge.completed ? ["#10b981", "#059669"] : [theme.accent, theme.primary]}
+                                            style={[styles.progressFill, { width: `${progressPercent * 100}%` }]}
+                                        />
+                                    </View>
+                                    <Text style={styles.progressText}>{challenge.progress}/{challenge.total}</Text>
+                                </View>
 
-                            <Pressable 
-                                style={[styles.button, { backgroundColor: challenge.completed ? "rgba(16,185,129,0.1)" : theme.primary }]}
-                                onPress={() => !challenge.completed && navigation.navigate("SelecaoExercicios")}
-                            >
-                                <Text style={[styles.buttonText, { color: challenge.completed ? "#10b981" : "#fff" }]}>
-                                    {challenge.completed ? "✔ CONCLUÍDO" : "INICIAR"}
-                                </Text>
-                            </Pressable>
-                        </View>
-                    );
-                })}
+                                <Pressable 
+                                    style={[styles.button, { backgroundColor: challenge.completed ? "rgba(16,185,129,0.1)" : theme.primary }]}
+                                    disabled={challenge.completed}
+                                    onPress={() => {
+                                        // Navega para a fase correspondente
+                                        if (challenge.phase === 1) {
+                                            navigation.navigate("Treinar");
+                                        } else if (challenge.phase === 2) {
+                                            navigation.navigate("TreinarFase2");
+                                        } else if (challenge.phase === 3) {
+                                            navigation.navigate("TreinarFase3");
+                                        }
+                                    }}
+                                >
+                                    <Text style={[styles.buttonText, { color: challenge.completed ? "#10b981" : "#fff" }]}>
+                                        {challenge.completed ? "✔ CONCLUÍDO" : "INICIAR"}
+                                    </Text>
+                                </Pressable>
+                            </View>
+                        );
+                    })
+                )}
             </ScrollView>
         </PageLayout>
     );
@@ -90,5 +104,7 @@ const styles = StyleSheet.create({
     progressFill: { height: "100%" },
     progressText: { color: "rgba(255,255,255,0.4)", textAlign: "right", marginTop: 5, fontSize: 12 },
     button: { padding: 15, borderRadius: 12, alignItems: "center" },
-    buttonText: { fontWeight: "800", letterSpacing: 1 }
+    buttonText: { fontWeight: "800", letterSpacing: 1 },
+    emptyState: { paddingVertical: 40, alignItems: "center", justifyContent: "center" },
+    emptyText: { color: "rgba(255,255,255,0.5)", fontSize: 16 }
 });

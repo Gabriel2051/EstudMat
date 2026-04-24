@@ -1,13 +1,12 @@
 import useResponsive from "@/hooks/useResponsive";
 import { useNavigation } from "@react-navigation/native";
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, ScrollView, Dimensions } from "react-native";
+import { useStore, THEMES } from "@/screens/Store";
 
-type NavItem = {
-  label: string;
-  icon: string;
-  target: string;
-};
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+type NavItem = { label: string; icon: string; target: string; };
 
 type PageLayoutProps = {
   title: string;
@@ -29,28 +28,25 @@ const menuItems: NavItem[] = [
 export default function PageLayout({ title, subtitle, activeScreen, children }: PageLayoutProps) {
   const navigation = useNavigation<any>();
   const { width } = useResponsive();
+  const { temaAtivo } = useStore();
+  const theme = THEMES[temaAtivo];
   const showSidebar = width >= 900;
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: theme.bg }]}>
       {showSidebar && (
-        <View style={styles.sidebar}>
-          <Text style={styles.brand}>EstudMat</Text>
+        <View style={[styles.sidebar, { backgroundColor: theme.card }]}>
+          <Text style={[styles.brand, { color: theme.primary }]}>EstudMat</Text>
           <Text style={styles.brandSubtitle}>Seu painel de estudos</Text>
-
           <View style={styles.menuList}>
             {menuItems.map((item) => (
               <Pressable
                 key={item.target}
-                style={({ pressed }) => [
-                  styles.menuItem,
-                  activeScreen === item.target && styles.menuItemActive,
-                  pressed && styles.menuItemPressed,
-                ]}
+                style={[styles.menuItem, activeScreen === item.target && { backgroundColor: `${theme.primary}22` }]}
                 onPress={() => navigation.navigate(item.target)}
               >
                 <Text style={styles.menuIcon}>{item.icon}</Text>
-                <Text style={[styles.menuLabel, activeScreen === item.target && styles.menuLabelActive]}>
+                <Text style={[styles.menuLabel, activeScreen === item.target && { color: theme.primary }]}>
                   {item.label}
                 </Text>
               </Pressable>
@@ -59,34 +55,44 @@ export default function PageLayout({ title, subtitle, activeScreen, children }: 
         </View>
       )}
 
-      <View style={[styles.content, showSidebar && styles.contentWithSidebar]}>
-        <View style={styles.pageHeader}>
-          <View>
+      {/* ScrollView corrigido para funcionar na Web e Mobile */}
+      <View style={styles.contentWrapper}>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={[styles.scrollContent, { minHeight: SCREEN_HEIGHT }]}
+          showsVerticalScrollIndicator={true}
+        >
+          <View style={styles.pageHeader}>
             <Text style={styles.title}>{title}</Text>
             {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
           </View>
-        </View>
-        {children}
+          
+          <View style={styles.childrenContainer}>
+            {children}
+          </View>
+
+          <View style={{ height: 100 }} /> 
+        </ScrollView>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, flexDirection: "row", backgroundColor: "#0f0f14" },
-  sidebar: { width: 260, backgroundColor: "#111214", borderRightWidth: 1, borderRightColor: "rgba(255,255,255,0.08)", paddingTop: 50, paddingHorizontal: 16 },
-  brand: { color: "#ef4444", fontSize: 22, fontWeight: "900", marginBottom: 6 },
-  brandSubtitle: { color: "rgba(255,255,255,0.6)", fontSize: 13, marginBottom: 20 },
-  menuList: { gap: 8 },
-  menuItem: { flexDirection: "row", alignItems: "center", paddingVertical: 12, paddingHorizontal: 12, borderRadius: 12 },
-  menuItemActive: { backgroundColor: "rgba(239,68,68,0.14)" },
-  menuItemPressed: { opacity: 0.8 },
-  menuIcon: { fontSize: 16, marginRight: 10 },
-  menuLabel: { color: "rgba(255,255,255,0.8)", fontSize: 15, fontWeight: "700" },
-  menuLabelActive: { color: "#fff" },
-  content: { flex: 1, paddingVertical: 20, paddingHorizontal: 16 },
-  contentWithSidebar: { paddingHorizontal: 32 },
-  pageHeader: { marginBottom: 20 },
-  title: { color: "#fff", fontSize: 28, fontWeight: "900" },
-  subtitle: { color: "rgba(255,255,255,0.7)", marginTop: 6, fontSize: 15 },
+  root: { flex: 1, flexDirection: "row" },
+  sidebar: { width: 260, borderRightWidth: 1, borderRightColor: "rgba(255,255,255,0.08)", paddingTop: 50, paddingHorizontal: 16 },
+  brand: { fontSize: 24, fontWeight: "900", marginBottom: 6 },
+  brandSubtitle: { color: "rgba(255,255,255,0.5)", fontSize: 13, marginBottom: 30 },
+  menuList: { gap: 10 },
+  menuItem: { flexDirection: "row", alignItems: "center", padding: 14, borderRadius: 14 },
+  menuIcon: { fontSize: 18, marginRight: 12 },
+  menuLabel: { color: "rgba(255,255,255,0.7)", fontSize: 15, fontWeight: "700" },
+  
+  contentWrapper: { flex: 1 },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingVertical: 40, paddingHorizontal: 24 },
+  pageHeader: { marginBottom: 30 },
+  title: { color: "#fff", fontSize: 34, fontWeight: "900" },
+  subtitle: { color: "rgba(255,255,255,0.5)", marginTop: 8, fontSize: 16 },
+  childrenContainer: { flex: 1 }
 });
